@@ -33,7 +33,7 @@
 						id="assignmentResource"
 						selectedKey="{mpForm>/EmpID}"
 						items="{mpForm>/resources}"
-						showSecondaryValues="true"
+						showSecondaryValues="false"
 						enabled="{= ${mpForm>/mode} !== 'edit' }"
 						placeholder="{i18n>mpFieldResourcePlaceholder}">
 						<core:ListItem key="{mpForm>EmpID}" text="{mpForm>FullName}" additionalText="{mpForm>EmpID}" />
