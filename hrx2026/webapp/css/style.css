@@ -2201,3 +2201,378 @@ body.hrxApp {
 	color: var(--txt-3);
 	white-space: nowrap;
 }
+
+/* ── TIMESHEET REPORTING ──────────────────────────────────────────────────── */
+
+/* KPIs whose state follows the data carry it as data-state rather than a class,
+   since a bound class does not evaluate. Same colours as the hrxKpi variants. */
+.hrxApp .hrxKpi[data-state="Good"] { border-top-color: var(--mint); }
+.hrxApp .hrxKpi[data-state="Warning"] { border-top-color: var(--amber); }
+.hrxApp .hrxKpi[data-state="Critical"] { border-top-color: var(--signal); }
+.hrxApp .hrxKpi[data-state="Good"] .hrxKpiGlyph { color: #0F7B4F; background: var(--mint-soft); }
+.hrxApp .hrxKpi[data-state="Warning"] .hrxKpiGlyph { color: #92400E; background: var(--amber-soft); }
+.hrxApp .hrxKpi[data-state="Critical"] .hrxKpiGlyph { color: #991B1B; background: var(--signal-soft); }
+
+.hrxApp .hrxTrLoading {
+	gap: 10px;
+	padding: 10px 14px;
+	margin-bottom: 12px;
+	background: var(--ice-glow);
+	border-radius: var(--radius-s);
+	color: var(--ice-deep);
+	font-size: 13px;
+}
+
+/* The prototype's tab strip: display-face uppercase labels on a single rule. */
+.hrxApp .hrxTrTabs.sapMITB {
+	background: transparent;
+	box-shadow: none;
+}
+
+.hrxApp .hrxTrTabs .sapMITH {
+	background: transparent;
+	box-shadow: inset 0 -1px 0 var(--line);
+	padding: 0;
+	margin-bottom: 18px;
+}
+
+.hrxApp .hrxTrTabs .sapMITBText {
+	font-family: var(--disp);
+	text-transform: uppercase;
+	font-weight: 700;
+	font-size: 12px;
+	letter-spacing: .04em;
+	color: var(--txt-2);
+}
+
+.hrxApp .hrxTrTabs .sapMITBSelected .sapMITBText {
+	color: var(--ice-deep);
+}
+
+.hrxApp .hrxTrTabs .sapMITBContent {
+	background: transparent;
+	padding: 0;
+	border: none;
+}
+
+.hrxApp .hrxTrCard + .hrxTrCard {
+	margin-top: 16px;
+}
+
+.hrxApp .hrxTrCardHead {
+	gap: 12px;
+	padding: 14px 20px;
+	border-bottom: 1px solid var(--line-soft);
+	justify-content: space-between;
+}
+
+.hrxApp .hrxTrCardHeadText {
+	flex: 1 !important;
+	min-width: 12rem;
+}
+
+.hrxApp .hrxTrCardTitle.sapMTitle {
+	font-family: var(--disp);
+	text-transform: uppercase;
+	font-size: 14px;
+	font-weight: 800;
+	color: var(--ink);
+}
+
+.hrxApp .hrxTrTools {
+	gap: 10px;
+}
+
+.hrxApp .hrxTrCardBody {
+	padding: 4px 20px 18px;
+}
+
+.hrxApp .hrxTrEmpty {
+	display: block;
+	padding: 28px 20px;
+	text-align: center;
+	color: var(--txt-3);
+	font-size: 13.5px;
+}
+
+.hrxApp .hrxTrStrong {
+	font-weight: 700;
+}
+
+.hrxApp .hrxTrNum {
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+}
+
+/* Billing by assignment: one grid shared by the header and every row, so the
+   columns line up without a table (rows open to show their bookings). */
+.hrxApp .hrxTrAsgTable {
+	min-width: 760px;
+}
+
+.hrxApp .hrxTrAsgRow.sapMFlexBox {
+	display: grid !important;
+	grid-template-columns: 2.5rem minmax(9rem, 1.1fr) minmax(12rem, 1.6fr) 7rem 6rem 7rem 7.5rem;
+	align-items: center;
+	column-gap: 12px;
+	padding: 10px 20px 10px 8px;
+	border-bottom: 1px solid var(--line-soft);
+}
+
+.hrxApp .hrxTrAsgRow > .sapMFlexItem {
+	min-width: 0 !important;
+}
+
+.hrxApp .hrxTrAsgRow > .sapMFlexItem:nth-child(n+5) {
+	text-align: right;
+}
+
+.hrxApp .hrxTrAsgHead.sapMFlexBox {
+	background: var(--frost);
+	padding-top: 8px;
+	padding-bottom: 8px;
+}
+
+.hrxApp .hrxTrAsgHead .sapMText {
+	font-size: 10.5px;
+	font-weight: 700;
+	letter-spacing: .1em;
+	text-transform: uppercase;
+	color: var(--txt-3);
+}
+
+.hrxApp .hrxTrAsg {
+	cursor: pointer;
+}
+
+.hrxApp .hrxTrAsg:hover > .hrxTrAsgRow {
+	background: rgba(38, 170, 226, .04);
+}
+
+.hrxApp .hrxTrChev .sapUiIcon {
+	transition: transform .15s;
+}
+
+.hrxApp .hrxTrAsg[data-open="yes"] .hrxTrChev .sapUiIcon {
+	transform: rotate(90deg);
+}
+
+.hrxApp .hrxTrLogs.sapMList {
+	margin: 0 20px 14px 3.5rem;
+	width: calc(100% - 3.5rem - 20px) !important;
+	border: 1px solid var(--line-soft);
+	border-radius: var(--radius-s);
+	overflow: hidden;
+	cursor: default;
+}
+
+/* Billed days overview */
+.hrxApp .hrxTrStat {
+	padding: 14px 0;
+	border-bottom: 1px solid var(--line-soft);
+}
+
+.hrxApp .hrxTrStat:last-child {
+	border-bottom: none;
+}
+
+.hrxApp .hrxTrStatLabel {
+	font-size: 12px;
+	color: var(--txt-2);
+	margin-bottom: 3px;
+}
+
+.hrxApp .hrxTrStatValue {
+	font-family: var(--disp);
+	font-weight: 800;
+	font-size: 24px;
+	letter-spacing: -.5px;
+	color: var(--ink);
+}
+
+.hrxApp .hrxTrStatUnit {
+	font-size: 13px;
+	color: var(--txt-3);
+	margin-left: 6px;
+}
+
+.hrxApp .hrxTrPieWrap {
+	display: flex;
+	justify-content: center;
+	margin: 14px 0 10px;
+}
+
+.hrxApp .hrxTrPie {
+	width: 210px;
+	height: 210px;
+	max-width: 100%;
+}
+
+.hrxApp .hrxTrWedge {
+	stroke: var(--surface);
+	stroke-width: .8;
+	stroke-linejoin: round;
+	transition: opacity .15s;
+}
+
+.hrxApp .hrxTrWedgeActive {
+	cursor: pointer;
+}
+
+.hrxApp .hrxTrWedgeActive:hover {
+	opacity: .8;
+}
+
+.hrxApp .hrxTrLegend .sapMLIB {
+	padding: 0 6px;
+	min-height: 2.25rem;
+	border-radius: 8px;
+	background: transparent;
+}
+
+.hrxApp .hrxTrLegendRow {
+	gap: 8px;
+	width: 100%;
+	font-size: 13px;
+}
+
+.hrxApp .hrxTrLegendLabel {
+	flex: 1 !important;
+}
+
+.hrxApp .hrxTrDot {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+}
+
+.hrxApp .hrxTrTopRow {
+	margin-top: 14px;
+}
+
+.hrxApp .hrxTrTopLabel {
+	gap: 12px;
+	font-size: 13px;
+	margin-bottom: 5px;
+}
+
+.hrxApp .hrxTrTrack {
+	height: 7px;
+	background: var(--line-soft);
+	border-radius: 5px;
+	overflow: hidden;
+}
+
+.hrxApp .hrxTrFill {
+	height: 100%;
+	border-radius: 5px;
+	background: linear-gradient(90deg, var(--ice), #756EE5);
+}
+
+/* Timesheet breakdown */
+.hrxApp .hrxTrBreak .sapMListTblCell {
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+}
+
+.hrxApp .hrxTrGroup {
+	background: var(--frost);
+}
+
+.hrxApp .hrxTrGroupChev {
+	font-size: 11px;
+	color: var(--txt-2);
+	margin-right: 8px;
+}
+
+.hrxApp .hrxTrGroupCount {
+	margin-left: 8px;
+	font-size: 11.5px;
+	color: var(--txt-3);
+}
+
+.hrxApp .hrxTrIndent {
+	padding-left: 1.5rem;
+}
+
+.hrxApp .hrxTrTotals .sapMText {
+	font-weight: 800;
+}
+
+.hrxApp .hrxTrTotals {
+	border-top: 2px solid var(--line);
+}
+
+/* Who's submitted and team utilisation */
+.hrxApp .hrxTrWeek {
+	min-width: 11rem;
+	gap: 4px;
+}
+
+.hrxApp .hrxTrProgress.sapMPI {
+	margin: 0;
+}
+
+.hrxApp .hrxTrFilters {
+	gap: 12px 16px;
+	padding: 14px 20px;
+	margin-bottom: 16px;
+}
+
+.hrxApp .hrxTrField {
+	flex: 1 1 11rem !important;
+	min-width: 11rem;
+	max-width: 17rem;
+}
+
+.hrxApp .hrxTrField .sapMLabel {
+	font-size: 11px;
+	font-weight: 700;
+	color: var(--txt-2);
+	margin-bottom: 4px;
+}
+
+.hrxApp .hrxTrQuick {
+	gap: 6px;
+}
+
+.hrxApp .hrxTrStamp {
+	margin-left: auto;
+	align-self: center;
+}
+
+.hrxApp .hrxTrLegendRow > .sapMFlexItem:nth-child(2),
+.hrxApp .hrxTrTopLabel > .sapMFlexItem:first-child {
+	flex: 1 1 auto !important;
+	min-width: 0 !important;
+}
+
+.hrxApp .hrxTrLegendRow > .sapMFlexItem:last-child,
+.hrxApp .hrxTrTopLabel > .sapMFlexItem:last-child {
+	flex: 0 0 auto !important;
+	white-space: nowrap;
+}
+
+.hrxApp .hrxTrLegendRow > .sapMFlexItem:first-child {
+	display: flex;
+	align-items: center;
+}
+
+.hrxApp .hrxTrStateSuccess .hrxTrFill { background: var(--mint); }
+.hrxApp .hrxTrStateWarning .hrxTrFill { background: var(--amber); }
+.hrxApp .hrxTrStateError .hrxTrFill { background: var(--signal); }
+
+.hrxApp .hrxTrUtilBar {
+	gap: 10px;
+}
+
+.hrxApp .hrxTrUtilBar > .sapMFlexItem:first-child {
+	flex: 1 1 auto !important;
+	min-width: 5rem !important;
+}
+
+.hrxApp .hrxTrUtilBar > .sapMFlexItem:last-child {
+	flex: 0 0 2.75rem !important;
+	text-align: right;
+}
