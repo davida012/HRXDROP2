@@ -13,6 +13,9 @@
  *    kept until the dev server restarts.
  *
  * HRX_MOCK_USER picks who is signed in to the mock (default sam.evans@bluestonex.com).
+ * HRX_DMS_TOKEN (a bearer token for SAP Document Management) makes /browser/* - the
+ * profile pictures and logos - come from the real document store. Without it the mock
+ * has no pictures, so everyone shows initials; it never makes pictures up.
  */
 "use strict";
 
@@ -22,6 +25,8 @@ const https = require("https");
 const { build, STATUS } = require("./seed");
 
 const DEFAULT_SERVICE_URL = "https://bsx-tdd-tdd-bsx-hrx-srv.cfapps.eu10.hana.ondemand.com";
+// SAP Document Management endpoint hrx2023 reads pictures from (its dms_service destination)
+const DEFAULT_DMS_URL = "https://api-sdm-di.cfapps.eu10.hana.ondemand.com";
 
 // ── model: keys and navigation properties per entity set ──
 const KEYS = {
@@ -439,29 +444,6 @@ function createService(today, sUser) {
 
 /* ── Document Management stand-in: /browser/<repository>/root?cmisselector=content&objectId=<id> ── */
 const uploads = {};   // objectId -> { type, body }
-function hashOf(s) { let h = 5381; for (const c of s) { h = ((h << 5) + h + c.charCodeAt(0)) >>> 0; } return h; }
-// an illustrated head-and-shoulders avatar, so seeded pictures are obviously not real people
-function avatarSvg(sSeed) {
-	const h = hashOf(sSeed), pick = (a, n) => a[(h >>> n) % a.length];
-	const bg = pick([["#26AAE2", "#756EE5"], ["#2DD4BF", "#26AAE2"], ["#E5B159", "#E5484D"], ["#756EE5", "#C43FF6"], ["#1FAE72", "#2DD4BF"], ["#E5484D", "#C43FF6"]], 0);
-	const skin = pick(["#F6D2B8", "#E8B48F", "#C68A62", "#8D5A3B", "#5C3A26", "#FBE0CF"], 3);
-	const hair = pick(["#1E1B18", "#4A2F1D", "#8A5A2B", "#C9A15A", "#6B6B6B", "#2C1E14"], 6);
-	const shirt = pick(["#33343A", "#FFFFFF", "#0A0A0B", "#1888BC", "#45464C"], 9);
-	const long = (h >>> 12) % 2;
-	return "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='" + bg[0] + "'/><stop offset='1' stop-color='" + bg[1] + "'/></linearGradient></defs>" +
-		"<rect width='120' height='120' fill='url(#g)'/>" +
-		(long ? "<path d='M30 62c0-24 14-38 30-38s30 14 30 38v34H30z' fill='" + hair + "'/>" : "") +
-		"<path d='M18 120c4-26 22-36 42-36s38 10 42 36z' fill='" + shirt + "'/><rect x='51' y='70' width='18' height='18' rx='6' fill='" + skin + "'/>" +
-		"<ellipse cx='60' cy='56' rx='21' ry='24' fill='" + skin + "'/>" +
-		"<path d='M38 54c0-17 10-26 22-26s22 9 22 26c-6-9-14-12-22-12s-16 3-22 12z' fill='" + hair + "'/></svg>";
-}
-function logoSvg(sSeed, sName) {
-	const h = hashOf(sSeed), c = ["#1888BC", "#0F7B4F", "#C43FF6", "#E5484D", "#D97706", "#33343A"][h % 6];
-	const word = String(sName || "").split(/\s+/)[0].slice(0, 9);
-	return "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' fill='#fff'/>" +
-		(h % 2 ? "<circle cx='60' cy='46' r='22' fill='" + c + "'/><circle cx='60' cy='46' r='10' fill='#fff'/>" : "<path d='M60 22l24 24-24 24-24-24z' fill='" + c + "'/>") +
-		"<text x='60' y='96' text-anchor='middle' font-family='Helvetica,Arial,sans-serif' font-weight='700' font-size='15' fill='" + c + "'>" + word + "</text></svg>";
-}
 // the file part of a multipart/form-data body
 function filePart(buf, sType) {
 	const m = /boundary=(?:"([^"]+)"|([^;]+))/i.exec(sType || ""); if (!m) { return null; }
@@ -513,9 +495,17 @@ module.exports = function ({ log, options }) {
 	const sToken = process.env.HRX_TOKEN;
 	const sBase = process.env.HRX_SERVICE_URL || cfg.serviceUrl || DEFAULT_SERVICE_URL;
 	const bForceMock = cfg.mode === "mock";
+	// SAP Document Management, for real profile pictures and logos (/browser/*)
+	const sDmsToken = process.env.HRX_DMS_TOKEN;
+	const sDmsUrl = process.env.HRX_DMS_URL || cfg.dmsUrl || DEFAULT_DMS_URL;
+	if (sDmsToken) { log.info("/browser (pictures) is proxied to " + sDmsUrl + " with the bearer token from HRX_DMS_TOKEN"); }
 	if (sToken && !bForceMock) {
 		log.info("/hrx is proxied to " + sBase + " with the bearer token from HRX_TOKEN");
-		return (req, res, next) => (req.path.startsWith(sMount + "/") || req.path === sMount ? proxy(req, res, sBase, sToken) : next());
+		return (req, res, next) => {
+			if (req.path.startsWith(sMount + "/") || req.path === sMount) { proxy(req, res, sBase, sToken); return; }
+			if (sDmsToken && req.path.startsWith("/browser/")) { proxy(req, res, sDmsUrl, sDmsToken); return; }
+			next();
+		};
 	}
 	const sUser = process.env.HRX_MOCK_USER || cfg.user || "sam.evans@bluestonex.com";
 	const svc = createService(new Date(), sUser);
@@ -525,13 +515,15 @@ module.exports = function ({ log, options }) {
 	return async function (req, res, next) {
 		const u = new URL(req.originalUrl || req.url, "http://localhost");
 		// the approuter's user API, which tells the app who is signed in
+		// pictures: only real ones. Uploaded files are kept and served back; with
+		// HRX_DMS_TOKEN set, anything else is fetched from SAP Document Management itself;
+		// otherwise there is no picture and the app shows initials.
 		const pic = /^\/browser\/[^/]+\/root$/.exec(u.pathname);
 		if (pic && u.searchParams.get("cmisselector") === "content") {
 			const id = u.searchParams.get("objectId") || "";
 			if (uploads[id]) { send(res, 200, uploads[id].body, { "Content-Type": uploads[id].type, "Cache-Control": "no-cache" }); return; }
-			const person = svc.db.Users.find((x) => x.ImageObjectID === id), client = svc.db.Clients.find((x) => x.LogoObjectID === id);
-			if (person || client) { send(res, 200, person ? avatarSvg(person.EmployeeID + person.FirstName) : logoSvg(client.ID, client.ClientName), { "Content-Type": "image/svg+xml", "Cache-Control": "max-age=3600" }); return; }
-			send(res, 404, { exception: "objectNotFound", message: "Object not found: " + id });
+			if (sDmsToken) { proxy(req, res, sDmsUrl, sDmsToken); return; }
+			send(res, 404, { exception: "objectNotFound", message: "No picture for " + id });
 			return;
 		}
 		if (u.pathname === "/user-api/currentUser") { send(res, 200, { email: sUser, name: sUser, scopes: [] }, { "Content-Type": "application/json" }); return; }
