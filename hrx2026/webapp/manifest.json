@@ -160,6 +160,11 @@
           "name": "missingtimesheets",
           "pattern": "missingtimesheets",
           "target": "missingtimesheets"
+        },
+        {
+          "name": "sickness",
+          "pattern": "sickness",
+          "target": "sickness"
         }
       ],
       "targets": {
@@ -212,6 +217,11 @@
           "viewName": "MissingTimesheets",
           "viewLevel": 1,
           "viewId": "missingtimesheets"
+        },
+        "sickness": {
+          "viewName": "Sickness",
+          "viewLevel": 1,
+          "viewId": "sickness"
         },
         "notFound": {
           "viewName": "NotFound",

@@ -1,0 +1,171 @@
+sap.ui.define([], function () {
+	"use strict";
+
+	// The attendance policy: three separate sickness absences inside one financial
+	// year raise a trigger. It counts instances, not days - a single fortnight off is
+	// one instance, three one-day absences are three.
+	var TRIGGER_INSTANCES = 3;
+
+	// The financial year runs 1 April to 31 March. Months are zero based.
+	var FY_START_MONTH = 3;
+
+	// Indexed by Date.getDay(), so Sunday first. Used when an employee has no work
+	// pattern of their own on /Resources.
+	var DEFAULT_PATTERN = [false, true, true, true, true, true, false];
+
+	var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+	function pad(iValue) {
+		return String(iValue).padStart(2, "0");
+	}
+
+	function isoDate(oDate) {
+		return oDate.getFullYear() + "-" + pad(oDate.getMonth() + 1) + "-" + pad(oDate.getDate());
+	}
+
+	/**
+	 * Reads a "yyyy-MM-dd" day as local midnight. new Date("yyyy-MM-dd") would read it
+	 * as UTC midnight, which is the previous day anywhere west of Greenwich.
+	 * @param {string} sDay a calendar day
+	 * @returns {Date} that day at local midnight
+	 */
+	function parseDay(sDay) {
+		var aParts = String(sDay).split("-");
+		return new Date(parseInt(aParts[0], 10), parseInt(aParts[1], 10) - 1, parseInt(aParts[2], 10));
+	}
+
+	return {
+
+		TRIGGER_INSTANCES: TRIGGER_INSTANCES,
+
+		/**
+		 * @param {Date} oDate any day
+		 * @returns {object} the financial year that day falls in: startYear, and its
+		 * first and last days as Dates and as "yyyy-MM-dd"
+		 */
+		fiscalYearOf: function (oDate) {
+			var iStartYear = oDate.getMonth() >= FY_START_MONTH ? oDate.getFullYear() : oDate.getFullYear() - 1;
+			return this.fiscalYear(iStartYear);
+		},
+
+		/**
+		 * @param {number} iStartYear the calendar year the financial year starts in
+		 * @returns {object} that financial year
+		 */
+		fiscalYear: function (iStartYear) {
+			var oStart = new Date(iStartYear, FY_START_MONTH, 1);
+			var oEnd = new Date(iStartYear + 1, FY_START_MONTH, 0);
+
+			return {
+				startYear: iStartYear,
+				start: oStart,
+				end: oEnd,
+				from: isoDate(oStart),
+				to: isoDate(oEnd),
+				label: MONTHS[oStart.getMonth()] + " " + oStart.getFullYear() + " – " +
+					MONTHS[oEnd.getMonth()] + " " + oEnd.getFullYear()
+			};
+		},
+
+		/**
+		 * An absence belongs to the financial year it starts in, so one that runs over
+		 * 31 March is counted once, in the year it began.
+		 * @param {string} sStartDay the absence's first day as "yyyy-MM-dd"
+		 * @param {object} oYear a financial year from {@link fiscalYear}
+		 * @returns {boolean} true when the absence counts towards that year
+		 */
+		inFiscalYear: function (sStartDay, oYear) {
+			return !!sStartDay && sStartDay >= oYear.from && sStartDay <= oYear.to;
+		},
+
+		/**
+		 * @param {object} [oResource] a /Resources row, carrying Mo..Su as "Y"/"N"
+		 * @returns {Array<boolean>} the days that person works, indexed by getDay()
+		 */
+		workPattern: function (oResource) {
+			if (!oResource) {
+				return DEFAULT_PATTERN;
+			}
+			var aPattern = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map(function (sDay) {
+				return oResource[sDay] === "Y";
+			});
+			return aPattern.some(Boolean) ? aPattern : DEFAULT_PATTERN;
+		},
+
+		/**
+		 * @param {Date} oFrom the first day off
+		 * @param {Date} oTo the last day off
+		 * @param {Array<boolean>} [aPattern] the days the person works, from {@link workPattern}
+		 * @returns {number} the working days between the two, both included
+		 */
+		workingDays: function (oFrom, oTo, aPattern) {
+			var aWorks = aPattern || DEFAULT_PATTERN;
+			var oDay = new Date(oFrom.getFullYear(), oFrom.getMonth(), oFrom.getDate());
+			var iDays = 0;
+
+			while (oDay <= oTo) {
+				if (aWorks[oDay.getDay()]) {
+					iDays++;
+				}
+				oDay.setDate(oDay.getDate() + 1);
+			}
+			return iDays;
+		},
+
+		/**
+		 * Everyone with enough separate absences in the year to trigger the policy.
+		 *
+		 * A review (follow-up sent, or dismissed) records how many instances there were
+		 * when it was made. If another absence lands after that, the trigger opens
+		 * again - otherwise a dismissal would hide a fourth or fifth instance, which is
+		 * exactly when the policy calls for a formal review.
+		 * @param {Array<object>} aAbsences absences with EmpID, StartDate ("yyyy-MM-dd") and Days
+		 * @param {object} oYear a financial year from {@link fiscalYear}
+		 * @param {Array<object>} [aReviews] reviews with EmpID, Status ("ACTIONED"|"DISMISSED"),
+		 * Note and InstanceCount
+		 * @returns {Array<object>} one entry per triggered employee - EmpID, absences (newest
+		 * first), instances, days, status ("OPEN"|"ACTIONED"|"DISMISSED") and note - by name
+		 */
+		triggers: function (aAbsences, oYear, aReviews) {
+			var mByEmp = {};
+			var mReviews = {};
+
+			(aReviews || []).forEach(function (oReview) {
+				mReviews[oReview.EmpID] = oReview;
+			});
+
+			(aAbsences || []).forEach(function (oAbsence) {
+				if (this.inFiscalYear(oAbsence.StartDate, oYear)) {
+					(mByEmp[oAbsence.EmpID] = mByEmp[oAbsence.EmpID] || []).push(oAbsence);
+				}
+			}, this);
+
+			return Object.keys(mByEmp).filter(function (sEmpId) {
+				return mByEmp[sEmpId].length >= TRIGGER_INSTANCES;
+			}).map(function (sEmpId) {
+				var aList = mByEmp[sEmpId].slice().sort(function (a, b) {
+					return b.StartDate.localeCompare(a.StartDate);
+				});
+				var oReview = mReviews[sEmpId];
+				var bStillReviewed = !!oReview && (parseInt(oReview.InstanceCount, 10) || 0) >= aList.length;
+
+				return {
+					EmpID: sEmpId,
+					Name: aList[0].Name || "",
+					absences: aList,
+					instances: aList.length,
+					days: aList.reduce(function (fTotal, oAbsence) {
+						return fTotal + (parseFloat(oAbsence.Days) || 0);
+					}, 0),
+					status: bStillReviewed ? oReview.Status : "OPEN",
+					note: bStillReviewed ? (oReview.Note || "") : ""
+				};
+			}).sort(function (a, b) {
+				return a.Name.localeCompare(b.Name);
+			});
+		},
+
+		parseDay: parseDay,
+		isoDate: isoDate
+	};
+});

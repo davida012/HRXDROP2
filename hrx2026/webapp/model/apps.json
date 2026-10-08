@@ -53,6 +53,12 @@
       "subtitle": "Who has not booked their time",
       "icon": "sap-icon://alert",
       "route": "missingtimesheets"
+    },
+    {
+      "title": "Sickness",
+      "subtitle": "Absences, policy triggers and return to work",
+      "icon": "sap-icon://wounds-doc",
+      "route": "sickness"
     }
   ]
 }

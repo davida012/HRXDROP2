@@ -27,6 +27,7 @@ sap.ui.define([
 		clients: "navManageClients",
 		projects: "navManageProjects",
 		missingtimesheets: "navMissingTimesheets",
+		sickness: "navSickness",
 		explorer: "navAppExplorer",
 		admin: "navAdmin"
 	};
@@ -34,14 +35,15 @@ sap.ui.define([
 	// Pages whose controller offers an onRefresh - the shell bar's reload button is
 	// theirs. Driven off the route rather than off whichever page the NavContainer
 	// reports, which during a transition is still the page being left behind.
-	var aRefreshableRoutes = ["home", "timesheet", "leave", "teamcal"];
+	var aRefreshableRoutes = ["home", "timesheet", "leave", "teamcal", "sickness"];
 
 	// Which nav row to light up for the pages that are reached from the App Explorer.
 	var mRouteToNavKey = {
 		resources: "explorer",
 		clients: "explorer",
 		projects: "explorer",
-		missingtimesheets: "explorer"
+		missingtimesheets: "explorer",
+		sickness: "admin"
 	};
 
 	return Controller.extend("bsx.hrx.hrx2026.controller.App", {

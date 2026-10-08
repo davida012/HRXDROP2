@@ -1918,3 +1918,231 @@ body.hrxApp {
 .hrxApp .sapSuiteCpMCVerticalAlignmentContainer {
     max-width: 100%;
 }
+/* ── SICKNESS ─────────────────────────────────────────────────────────────── */
+
+/* The prototype's trigger and return-to-work cards. Built from VBoxes rather
+   than sap.f.Card: each carries a header row with a status pill, a body of
+   labelled text and an action row, none of which the card header can hold. */
+
+.hrxApp .hrxSkYearLabel {
+	font-weight: 700;
+	font-size: 13.5px;
+	color: var(--ink);
+	margin: 0 4px;
+}
+
+.hrxApp .hrxSkAlert {
+	margin-bottom: 4px;
+	border-radius: var(--radius-s);
+}
+
+.hrxApp .hrxSkSectionTitle.sapMTitle {
+	font-size: 15px;
+	margin: 22px 0 12px;
+}
+
+.hrxApp .hrxSkCard {
+	background: var(--surface);
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow);
+	overflow: hidden;
+}
+
+.hrxApp .hrxSkStack > .hrxSkCard:not(:last-child) {
+	margin-bottom: 16px;
+}
+
+.hrxApp .hrxSkEmpty {
+	padding: 28px 22px;
+	align-items: center;
+}
+
+.hrxApp .hrxSkEmpty .sapMText {
+	color: var(--txt-3);
+	font-size: 13.5px;
+}
+
+.hrxApp .hrxSkTrigger:not([data-status="OPEN"]) {
+	opacity: .85;
+}
+
+.hrxApp .hrxSkCardHead {
+	gap: 14px;
+	padding: 16px 22px;
+	border-bottom: 1px solid var(--line-soft);
+}
+
+.hrxApp .hrxSkCardWho {
+	flex: 1;
+	min-width: 0;
+}
+
+.hrxApp .hrxSkAvatar.sapFAvatar {
+	background: linear-gradient(135deg, var(--ice), var(--ice-deep));
+	color: #fff;
+}
+
+.hrxApp .hrxSkName {
+	font-family: var(--disp);
+	text-transform: uppercase;
+	font-weight: 800;
+	font-size: 15px;
+	color: var(--ink);
+}
+
+.hrxApp .hrxSkSub {
+	font-size: 12.5px;
+	color: var(--txt-3);
+}
+
+.hrxApp .hrxSkPill.sapMObjStatus {
+	border-radius: 999px;
+	padding: 0 4px;
+	font-size: 12px;
+	font-weight: 600;
+	flex-shrink: 0;
+}
+
+.hrxApp .hrxSkCardBody {
+	padding: 18px 22px 20px;
+}
+
+.hrxApp .hrxSkRule {
+	font-size: 13.5px;
+	color: var(--ink);
+}
+
+.hrxApp .hrxSkSummary {
+	font-weight: 700;
+	font-size: 13.5px;
+	color: var(--ink);
+	margin: 4px 0 6px;
+}
+
+.hrxApp .hrxSkLabel {
+	display: block;
+	font-size: 10.5px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: .1em;
+	color: var(--txt-3);
+	margin: 18px 0 8px;
+}
+
+.hrxApp .hrxSkLabel.hrxSkLabelFirst {
+	margin-top: 0;
+}
+
+.hrxApp .hrxSkRec {
+	font-size: 13.5px;
+	line-height: 1.55;
+	color: var(--ink);
+}
+
+.hrxApp .hrxSkActions {
+	gap: 10px;
+	margin-top: 18px;
+}
+
+.hrxApp .hrxSkNote {
+	margin-top: 16px;
+	font-size: 12.5px;
+	color: var(--txt-2);
+	padding: 10px 14px;
+	background: var(--frost);
+	border-radius: var(--radius-s);
+}
+
+/* The absence history sits inside a card, so it drops the card styling every
+   other panel gets and reads as a disclosure row instead. */
+.hrxApp .hrxSkHistory.sapMPanel {
+	border: none;
+	box-shadow: none;
+	border-radius: 0;
+	background: transparent;
+	margin-top: 10px;
+}
+
+.hrxApp .hrxSkHistory > .sapMPanelHeadingDiv,
+.hrxApp .hrxSkHistory .sapMPanelWrappingDiv,
+.hrxApp .hrxSkHistory .sapMPanelWrappingDivTb,
+.hrxApp .hrxSkHistory .sapMPanelHdr,
+.hrxApp .hrxSkHistory .sapMTB {
+	background: transparent;
+	border: none;
+	padding-left: 0;
+	padding-right: 0;
+}
+
+.hrxApp .hrxSkHistory .hrxSkLabel {
+	margin: 0;
+}
+
+.hrxApp .hrxSkCount {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--txt-3);
+}
+
+.hrxApp .hrxSkHistory > .sapMPanelContent {
+	padding: 0;
+	background: transparent;
+	border: 1px solid var(--line-soft);
+	border-radius: var(--radius-s);
+	overflow: hidden;
+}
+
+.hrxApp .hrxSkRtwGrid.sapUiRespGrid {
+	margin: 0 -8px;
+}
+
+.hrxApp .hrxSkRtw {
+	height: 100%;
+}
+
+.hrxApp .hrxSkStep {
+	gap: 12px;
+	padding: 8px 0;
+	min-height: 2.25rem;
+	border-bottom: 1px solid var(--line-soft);
+}
+
+.hrxApp .hrxSkStep:last-child {
+	border-bottom: none;
+}
+
+.hrxApp .hrxSkStepIcon.sapUiIcon {
+	width: 20px;
+	height: 20px;
+	line-height: 16px;
+	font-size: 10px;
+	border-radius: 50%;
+	border: 2px solid var(--line);
+	color: #fff;
+	flex-shrink: 0;
+	box-sizing: border-box;
+}
+
+.hrxApp .hrxSkStep[data-done="yes"] .hrxSkStepIcon {
+	background: var(--mint);
+	border-color: var(--mint);
+}
+
+.hrxApp .hrxSkStepText {
+	font-size: 13.5px;
+	color: var(--ink);
+}
+
+.hrxApp .hrxSkStep[data-done="yes"] .hrxSkStepText {
+	color: var(--txt-2);
+}
+
+.hrxApp .hrxSkAll.sapMPanel {
+	margin-top: 22px;
+}
+
+.hrxApp .hrxSkAll .sapMTB .hrxResourceMeta,
+.hrxApp .hrxSkCount {
+	white-space: nowrap;
+}
