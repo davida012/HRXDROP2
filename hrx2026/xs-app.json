@@ -3,9 +3,16 @@
   "authenticationMethod": "route",
   "routes": [
     {
-            "source": "^/user-api(.*)",
-            "target": "$1",
-            "service": "sap-approuter-userapi"
+      "source": "^/user-api(.*)",
+      "target": "$1",
+      "service": "sap-approuter-userapi"
+    },
+    {
+      "source": "^/hrx/(.*)$",
+      "target": "/hrx/$1",
+      "destination": "hrxservices",
+      "authenticationType": "xsuaa",
+      "csrfProtection": false
     },
     {
       "source": "^/services/(.*)$",

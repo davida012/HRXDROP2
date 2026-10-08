@@ -3,13 +3,10 @@ sap.ui.define([
 	"sap/ui/core/Fragment",
 	"sap/ui/model/json/JSONModel",
 	"sap/m/MessageBox",
-	"../model/Backend",
+	"../model/HrxLegacy",
 	"../model/formatter"
-], function (Controller, Fragment, JSONModel, MessageBox, Backend, formatter) {
+], function (Controller, Fragment, JSONModel, MessageBox, HrxLegacy, formatter) {
 	"use strict";
-
-	// Root path of the backend services - see xs-app.json (deployed) and ui5.yaml (local).
-	var TIMESHEET_SERVICE = Backend.TIMESHEET;
 
 	return Controller.extend("bsx.hrx.hrx2026.controller.MissingTimesheets", {
 
@@ -70,10 +67,7 @@ sap.ui.define([
 				formatter.date(oFirstDay), formatter.date(oLastDay)
 			]));
 
-			return this._getJson(TIMESHEET_SERVICE + "?cmd=missingTimesheet&" + new URLSearchParams({
-				fromDate: this._isoDate(oFirstDay),
-				toDate: this._isoDate(oLastDay)
-			}).toString()).then(function (aData) {
+			return HrxLegacy.missingTimesheet(this._isoDate(oFirstDay), this._isoDate(oLastDay)).then(function (aData) {
 				this.getModel("mt").setProperty("/all", (aData || []).map(this._toRow, this));
 				this._applyFilter();
 				oViewModel.setProperty("/busy", false);
@@ -254,26 +248,6 @@ sap.ui.define([
 
 		getText: function (sKey, aArgs) {
 			return this.getResourceBundle().getText(sKey, aArgs);
-		},
-
-		_getJson: function (sUrl) {
-			return fetch(sUrl, { method: "GET" }).then(function (oResponse) {
-				return oResponse.text().then(function (sBody) {
-					var vJson = null;
-					try {
-						vJson = sBody ? JSON.parse(sBody) : null;
-					} catch (oParseError) {
-						vJson = null;
-					}
-
-					// This report answers with a bare array rather than the usual envelope.
-					if (!oResponse.ok || !vJson) {
-						throw new Error((vJson && (vJson.msg || vJson.message)) || sBody || oResponse.statusText);
-					}
-
-					return vJson;
-				});
-			});
 		},
 
 		/**

@@ -23,6 +23,12 @@ server:
             # request to https://bsxorgappsservices.dest, which answers 502 here,
             # while url: above reaches the service directly. The destination name
             # still applies once deployed - xs-app.json carries it.
+          - path: /hrx
+            url: http://localhost:4004
+            # The HRX service. Deployed, /hrx goes through the "hrxservices"
+            # destination, which signs the request in as the user; the deployed
+            # service answers nobody else, so a local preview talks to a local copy
+            # of it instead (cds watch on port 4004 - see README).
     - name: fiori-tools-appreload
       afterMiddleware: compression
       configuration:
