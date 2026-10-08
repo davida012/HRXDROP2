@@ -13,6 +13,17 @@ sap.ui.define([], function () {
 	// pattern of their own on /Resources.
 	var DEFAULT_PATTERN = [false, true, true, true, true, true, false];
 
+	// The return-to-work checklist a manager works through after every recorded
+	// absence, in order - the prototype's. The second step starts done when a fit
+	// note came in with the absence.
+	var RTW_STEPS = [
+		"Absence recorded and categorised",
+		"Fit note received and filed",
+		"Return-to-work conversation held",
+		"Wellbeing support options discussed",
+		"Outcome recorded and trigger reviewed"
+	];
+
 	var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 	function pad(iValue) {
@@ -37,6 +48,21 @@ sap.ui.define([], function () {
 	return {
 
 		TRIGGER_INSTANCES: TRIGGER_INSTANCES,
+
+		/**
+		 * @param {boolean} bFitNote true when a fit note came in with the absence
+		 * @returns {Array<object>} a fresh return-to-work checklist: StepNo, Text and
+		 * Done ("Y"/"N") - the absence itself is recorded, so the first step is done
+		 */
+		rtwSteps: function (bFitNote) {
+			return RTW_STEPS.map(function (sText, iIndex) {
+				return {
+					StepNo: iIndex + 1,
+					Text: sText,
+					Done: iIndex === 0 || (iIndex === 1 && bFitNote) ? "Y" : "N"
+				};
+			});
+		},
 
 		/**
 		 * @param {Date} oDate any day

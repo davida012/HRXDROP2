@@ -65,11 +65,13 @@ sap.ui.define([
 		},
 
 		/**
-		 * Records an absence. The service is expected to open a return-to-work process
-		 * for the employee at the same time, unless one is already in progress, with
-		 * the "fit note received" step already done when FitNote is "Y".
+		 * Records an absence, and opens the return-to-work process the manager then
+		 * works through on the page. The service should create that process from
+		 * RtwSteps - the checklist is the page's to define, so every card matches -
+		 * unless the employee already has one in progress, which carries on instead.
 		 * @param {object} oAbsence OrgID, EmpID, StartDate, EndDate, Days, Reason, Notes,
-		 * FitNote ("Y"/"N") and RecordedBy (the signed-in admin's email)
+		 * FitNote ("Y"/"N"), RecordedBy (the signed-in admin's email) and RtwSteps (the
+		 * checklist to open: { StepNo, Text, Done ("Y"/"N") } each)
 		 * @returns {Promise<object>} the service's answer
 		 */
 		recordAbsence: function (oAbsence) {

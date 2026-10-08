@@ -393,7 +393,8 @@ sap.ui.define([
 				Reason: oForm.getProperty("/Reason").trim(),
 				Notes: oForm.getProperty("/Notes").trim(),
 				FitNote: oForm.getProperty("/FitNote") ? "Y" : "N",
-				RecordedBy: this._oProfile.email
+				RecordedBy: this._oProfile.email,
+				RtwSteps: SicknessPolicy.rtwSteps(!!oForm.getProperty("/FitNote"))
 			}).then(function () {
 				this.byId("recordSicknessDialog").close();
 				MessageToast.show(this.getText(iDays === 1 ? "skRecordedDay" : "skRecordedDays", [iDays]));

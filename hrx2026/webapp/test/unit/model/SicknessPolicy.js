@@ -38,6 +38,18 @@ sap.ui.define([
 		assert.strictEqual(SicknessPolicy.workingDays(new Date(2026, 6, 6), new Date(2026, 6, 12), aPattern), 3);
 	});
 
+	QUnit.module("SicknessPolicy - return to work");
+
+	QUnit.test("opens the prototype's five step checklist", function (assert) {
+		var aSteps = SicknessPolicy.rtwSteps(false);
+		assert.strictEqual(aSteps.length, 5);
+		assert.strictEqual(aSteps[0].Text, "Absence recorded and categorised");
+		assert.strictEqual(aSteps[0].Done, "Y", "the absence is already recorded");
+		assert.strictEqual(aSteps[1].Done, "N", "no fit note yet");
+		assert.strictEqual(SicknessPolicy.rtwSteps(true)[1].Done, "Y", "fit note received with the absence");
+		assert.strictEqual(aSteps[4].StepNo, 5);
+	});
+
 	QUnit.module("SicknessPolicy - triggers");
 
 	var oYear = SicknessPolicy.fiscalYear(2026);
