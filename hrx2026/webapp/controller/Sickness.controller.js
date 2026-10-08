@@ -230,11 +230,8 @@ sap.ui.define([
 			var sEmail = (oPerson && oPerson.Email) || oTrigger.absences.reduce(function (sFound, oAbsence) {
 				return sFound || oAbsence.Email;
 			}, "");
-			var mStatus = {
-				OPEN: { text: "skStatusOpen", state: "Error" },
-				ACTIONED: { text: "skStatusActioned", state: "Success" },
-				DISMISSED: { text: "skStatusDismissed", state: "None" }
-			}[oTrigger.status] || { text: "skStatusOpen", state: "Error" };
+			var bDismissed = oTrigger.status === "DISMISSED";
+			var sEmailedOn = Backend.dayKey(oTrigger.emailedOn);
 
 			return Object.assign({}, oTrigger, {
 				Name: sName,
@@ -243,11 +240,12 @@ sap.ui.define([
 				initials: formatter.nameInitials(sName),
 				summary: this.getText("skSummary", [oTrigger.instances, this._daysText(oTrigger.days)]),
 				historyCount: this.getText(oTrigger.instances === 1 ? "skAbsence" : "skAbsences", [oTrigger.instances]),
-				statusText: this.getText(mStatus.text),
-				statusState: mStatus.state,
+				statusText: this.getText(bDismissed ? "skStatusDismissed" : "skStatusOpen"),
+				statusState: bDismissed ? "None" : "Error",
 				dismissText: this.getText("skDismissButton", [sName.split(/\s+/)[0]]),
-				noteText: oTrigger.status === "DISMISSED" ?
-					this.getText("skDismissedNote", [oTrigger.note]) : this.getText("skActionedNote"),
+				noteText: bDismissed ? this.getText("skDismissedNote", [oTrigger.note]) : "",
+				emailedText: sEmailedOn ?
+					this.getText("skEmailedOn", [this._rangeText(sEmailedOn, sEmailedOn)]) : this.getText("skEmailed"),
 				expanded: !!this._mExpanded[oTrigger.EmpID]
 			});
 		},
@@ -400,7 +398,8 @@ sap.ui.define([
 
 		/**
 		 * Opens the admin's own mail app with a draft check-in to the employee, and
-		 * logs the trigger as actioned against their attendance record.
+		 * logs the email against their attendance record. The trigger stays open -
+		 * only a dismissal closes it - but is marked as emailed.
 		 * @param {sap.ui.base.Event} oEvent the button press event
 		 */
 		onSendFollowUp: function (oEvent) {
@@ -414,7 +413,7 @@ sap.ui.define([
 			var sBody = this.getText("skFollowUpBody", [oTrigger.firstName, oTrigger.instances]);
 			URLHelper.triggerEmail(oTrigger.Email, this.getText("skFollowUpSubject"), sBody);
 
-			this._review(oTrigger, "ACTIONED", sBody).then(function () {
+			this._review(oTrigger, "EMAILED", sBody).then(function () {
 				MessageToast.show(this.getText("skFollowUpLogged"));
 			}.bind(this)).catch(function (oError) {
 				this._showError("skErrorFollowUp", oError);
@@ -458,9 +457,9 @@ sap.ui.define([
 		},
 
 		/**
-		 * Logs a review of a trigger and reloads the page to show it.
+		 * Logs an action on a trigger and reloads the page to show it.
 		 * @param {object} oTrigger the trigger
-		 * @param {string} sStatus "ACTIONED" or "DISMISSED"
+		 * @param {string} sStatus "EMAILED" or "DISMISSED"
 		 * @param {string} sNote the follow-up sent, or the reason for dismissing
 		 * @returns {Promise} resolved once the review is logged
 		 */

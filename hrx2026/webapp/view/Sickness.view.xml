@@ -80,6 +80,13 @@
 								<Text text="{sk>Name}" class="hrxSkName" />
 								<Text text="{skView>/year/label}" class="hrxSkSub" />
 							</VBox>
+							<ObjectStatus
+								text="{i18n>skEmailSent}"
+								icon="sap-icon://email"
+								state="Information"
+								inverted="true"
+								visible="{= ${sk>emailed} &amp;&amp; ${sk>status} === 'OPEN' }"
+								class="hrxSkPill" />
 							<ObjectStatus text="{sk>statusText}" state="{sk>statusState}" inverted="true" class="hrxSkPill" />
 						</HBox>
 
@@ -116,9 +123,13 @@
 							<Text text="{i18n>skRecommended}" class="hrxSkLabel" />
 							<Text text="{i18n>skRecommendation}" class="hrxSkRec" />
 
+							<Text
+								text="{sk>emailedText}"
+								visible="{= ${sk>emailed} &amp;&amp; ${sk>status} === 'OPEN' }"
+								class="hrxSkNote hrxSkNoteEmailed" />
 							<HBox wrap="Wrap" visible="{= ${sk>status} === 'OPEN' }" class="hrxSkActions">
 								<Button
-									text="{i18n>skSendFollowUp}"
+									text="{= ${sk>emailed} ? ${i18n>skSendAnother} : ${i18n>skSendFollowUp} }"
 									icon="sap-icon://email"
 									press=".onSendFollowUp" />
 								<Button

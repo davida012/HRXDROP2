@@ -1968,7 +1968,7 @@ body.hrxApp {
 }
 
 .hrxApp .hrxSkCardHead {
-	gap: 14px;
+	gap: 10px;
 	padding: 16px 22px;
 	border-bottom: 1px solid var(--line-soft);
 }
@@ -2038,6 +2038,11 @@ body.hrxApp {
 	font-size: 13.5px;
 	line-height: 1.55;
 	color: var(--ink);
+}
+
+.hrxApp .hrxSkNote.hrxSkNoteEmailed {
+	color: var(--ice-deep);
+	background: var(--ice-glow);
 }
 
 .hrxApp .hrxSkActions {

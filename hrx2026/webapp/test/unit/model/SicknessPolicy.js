@@ -64,7 +64,7 @@ sap.ui.define([
 		assert.strictEqual(aTriggers.length, 0);
 	});
 
-	QUnit.test("a review closes the trigger until another absence arrives", function (assert) {
+	QUnit.test("a dismissal closes the trigger until another absence arrives", function (assert) {
 		var aAbsences = [absence("A", "2026-04-10"), absence("A", "2026-06-01"), absence("A", "2026-09-01")];
 		var aReviews = [{ EmpID: "A", Status: "DISMISSED", Note: "Spoke to them", InstanceCount: 3 }];
 
@@ -76,19 +76,36 @@ sap.ui.define([
 		assert.strictEqual(SicknessPolicy.triggers(aAbsences, oYear, aReviews)[0].status, "OPEN");
 	});
 
+	QUnit.test("an email marks the trigger but leaves it open", function (assert) {
+		var aAbsences = [absence("A", "2026-04-10"), absence("A", "2026-06-01"), absence("A", "2026-09-01")];
+		var aReviews = [{ EmpID: "A", Status: "EMAILED", InstanceCount: 3, ReviewedOn: "2026-09-10" }];
+
+		var oTrigger = SicknessPolicy.triggers(aAbsences, oYear, aReviews)[0];
+		assert.strictEqual(oTrigger.status, "OPEN", "still open after the email");
+		assert.strictEqual(oTrigger.emailed, true);
+		assert.strictEqual(oTrigger.emailedOn, "2026-09-10");
+
+		aReviews.push({ EmpID: "A", Status: "DISMISSED", Note: "Spoke to them", InstanceCount: 3, ReviewedOn: "2026-09-12" });
+		assert.strictEqual(SicknessPolicy.triggers(aAbsences, oYear, aReviews)[0].status, "DISMISSED", "closed by the dismissal");
+	});
+
 	QUnit.test("a fourth absence keeps the whole year's count rather than starting again", function (assert) {
 		var aAbsences = [absence("A", "2026-04-10", 1), absence("A", "2026-06-01", 2), absence("A", "2026-09-01", 1),
 			absence("A", "2027-01-12", 3)];
+		var aReviews = [
+			{ EmpID: "A", Status: "EMAILED", InstanceCount: 3, ReviewedOn: "2026-09-10" },
+			{ EmpID: "A", Status: "DISMISSED", InstanceCount: 3, ReviewedOn: "2026-09-12" }
+		];
 
-		["DISMISSED", "ACTIONED"].forEach(function (sStatus) {
-			var oTrigger = SicknessPolicy.triggers(aAbsences, oYear, [{ EmpID: "A", Status: sStatus, InstanceCount: 3 }])[0];
-			assert.strictEqual(oTrigger.status, "OPEN", "reopened after " + sStatus);
-			assert.strictEqual(oTrigger.instances, 4, "all four instances counted");
-			assert.strictEqual(oTrigger.absences.length, 4, "all four in the history");
-			assert.strictEqual(oTrigger.days, 7);
-		});
+		var oTrigger = SicknessPolicy.triggers(aAbsences, oYear, aReviews)[0];
+		assert.strictEqual(oTrigger.status, "OPEN", "reopened by the fourth instance");
+		assert.strictEqual(oTrigger.emailed, false, "the earlier email covered only three");
+		assert.strictEqual(oTrigger.instances, 4, "all four instances counted");
+		assert.strictEqual(oTrigger.absences.length, 4, "all four in the history");
+		assert.strictEqual(oTrigger.days, 7);
 
-		var oDismissedAgain = SicknessPolicy.triggers(aAbsences, oYear, [{ EmpID: "A", Status: "DISMISSED", InstanceCount: 4 }])[0];
-		assert.strictEqual(oDismissedAgain.status, "DISMISSED", "stays closed once the fourth is dismissed");
+		aReviews.push({ EmpID: "A", Status: "DISMISSED", InstanceCount: 4, ReviewedOn: "2027-01-20" });
+		assert.strictEqual(SicknessPolicy.triggers(aAbsences, oYear, aReviews)[0].status, "DISMISSED",
+			"closed once the fourth is dismissed");
 	});
 });

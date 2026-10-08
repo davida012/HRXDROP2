@@ -77,21 +77,23 @@ sap.ui.define([
 		},
 
 		/**
-		 * The policy triggers already followed up or dismissed in a financial year.
+		 * Every action logged against policy triggers in a financial year - a log, so
+		 * one employee can have several (an email, then a dismissal, ...).
 		 * @param {string} sOrgId the organisation
 		 * @param {number} iFiscalYear the calendar year the financial year starts in
-		 * @returns {Promise<Array<object>>} reviews: EmpID, Status ("ACTIONED"|"DISMISSED"),
-		 * Note, InstanceCount (absences at the time of the review), ReviewedBy and
-		 * ReviewedOn
+		 * @returns {Promise<Array<object>>} actions: EmpID, Status ("EMAILED"|"DISMISSED"),
+		 * Note, InstanceCount (absences at the time of the action), ReviewedBy and
+		 * ReviewedOn (when it was logged - a timestamp, or "yyyy-MM-dd")
 		 */
 		getTriggerReviews: function (sOrgId, iFiscalYear) {
 			return get("triggerReviews", { OrgID: sOrgId, FiscalYear: iFiscalYear });
 		},
 
 		/**
-		 * Logs a review of a trigger against the employee's attendance record.
-		 * @param {object} oReview OrgID, EmpID, FiscalYear, Status ("ACTIONED"|"DISMISSED"),
-		 * Note (the dismissal reason, or the follow-up sent), InstanceCount and ReviewedBy
+		 * Logs an action on a trigger against the employee's attendance record. Only a
+		 * dismissal closes the trigger; an email leaves it open, marked as emailed.
+		 * @param {object} oReview OrgID, EmpID, FiscalYear, Status ("EMAILED"|"DISMISSED"),
+		 * Note (the dismissal reason, or the email sent), InstanceCount and ReviewedBy
 		 * @returns {Promise<object>} the service's answer
 		 */
 		reviewTrigger: function (oReview) {

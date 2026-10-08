@@ -115,24 +115,24 @@ sap.ui.define([], function () {
 		/**
 		 * Everyone with enough separate absences in the year to trigger the policy.
 		 *
-		 * A review (follow-up sent, or dismissed) records how many instances there were
-		 * when it was made. If another absence lands after that, the trigger opens
-		 * again - otherwise a dismissal would hide a fourth or fifth instance, which is
-		 * exactly when the policy calls for a formal review.
+		 * Only a dismissal closes a trigger. Sending a follow-up email is logged too,
+		 * but the trigger stays open - it is only marked as emailed.
+		 *
+		 * Each logged action records how many instances there were when it was taken,
+		 * and only counts while that still covers every instance: if another absence
+		 * lands afterwards, a dismissed trigger opens again and an emailed one loses
+		 * its "email sent" mark, with the whole year's instances counted - a fourth or
+		 * fifth instance is exactly when the policy calls for a formal review.
 		 * @param {Array<object>} aAbsences absences with EmpID, StartDate ("yyyy-MM-dd") and Days
 		 * @param {object} oYear a financial year from {@link fiscalYear}
-		 * @param {Array<object>} [aReviews] reviews with EmpID, Status ("ACTIONED"|"DISMISSED"),
-		 * Note and InstanceCount
+		 * @param {Array<object>} [aReviews] the actions logged against triggers, any number per
+		 * employee: EmpID, Status ("EMAILED"|"DISMISSED"), Note, InstanceCount and ReviewedOn
 		 * @returns {Array<object>} one entry per triggered employee - EmpID, absences (newest
-		 * first), instances, days, status ("OPEN"|"ACTIONED"|"DISMISSED") and note - by name
+		 * first), instances, days, status ("OPEN"|"DISMISSED"), note (the dismissal reason),
+		 * emailed and emailedOn - by name
 		 */
 		triggers: function (aAbsences, oYear, aReviews) {
 			var mByEmp = {};
-			var mReviews = {};
-
-			(aReviews || []).forEach(function (oReview) {
-				mReviews[oReview.EmpID] = oReview;
-			});
 
 			(aAbsences || []).forEach(function (oAbsence) {
 				if (this.inFiscalYear(oAbsence.StartDate, oYear)) {
@@ -146,8 +146,18 @@ sap.ui.define([], function () {
 				var aList = mByEmp[sEmpId].slice().sort(function (a, b) {
 					return b.StartDate.localeCompare(a.StartDate);
 				});
-				var oReview = mReviews[sEmpId];
-				var bStillReviewed = !!oReview && (parseInt(oReview.InstanceCount, 10) || 0) >= aList.length;
+
+				// The latest action of a kind that still covers every instance.
+				var fnCurrent = function (sStatus) {
+					return (aReviews || []).filter(function (oReview) {
+						return oReview.EmpID === sEmpId && oReview.Status === sStatus &&
+							(parseInt(oReview.InstanceCount, 10) || 0) >= aList.length;
+					}).sort(function (a, b) {
+						return String(b.ReviewedOn || "").localeCompare(String(a.ReviewedOn || ""));
+					})[0] || null;
+				};
+				var oDismissal = fnCurrent("DISMISSED");
+				var oEmail = fnCurrent("EMAILED");
 
 				return {
 					EmpID: sEmpId,
@@ -157,8 +167,10 @@ sap.ui.define([], function () {
 					days: aList.reduce(function (fTotal, oAbsence) {
 						return fTotal + (parseFloat(oAbsence.Days) || 0);
 					}, 0),
-					status: bStillReviewed ? oReview.Status : "OPEN",
-					note: bStillReviewed ? (oReview.Note || "") : ""
+					status: oDismissal ? "DISMISSED" : "OPEN",
+					note: oDismissal ? (oDismissal.Note || "") : "",
+					emailed: !!oEmail,
+					emailedOn: oEmail ? (oEmail.ReviewedOn || "") : ""
 				};
 			}).sort(function (a, b) {
 				return a.Name.localeCompare(b.Name);
