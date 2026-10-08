@@ -553,7 +553,7 @@ sap.ui.define([
 							user: {
 								empID: oUser.EmployeeID,
 								siteID: oUser.BaseSite_ID || "",
-								isManager: yn(aResults[3].length > 0),
+								isManager: yn(demoRole() === "admin" || (demoRole() !== "employee" && aResults[3].length > 0)),
 								pic: "",
 								targetHrsPerWeek: hhmm(oSchedule.weekMinutes),
 								utilizationTargetPercentage: fTargetPct,
@@ -666,6 +666,12 @@ sap.ui.define([
 	/* ----------------------------------------------------------------- */
 	/* leaveReqs.xsjs, leaveApprovals.xsjs, teamCalendar1.xsjs           */
 	/* ----------------------------------------------------------------- */
+
+	/** TESTING AID - the "View as (demo)" choice, from CurrentUser. */
+	function demoRole() {
+		var CurrentUser = sap.ui.require("bsx/hrx/hrx2026/model/CurrentUser");
+		return CurrentUser ? CurrentUser.demoRole() : "actual";
+	}
 
 	function signedInEmpId() {
 		var CurrentUser = sap.ui.require("bsx/hrx/hrx2026/model/CurrentUser");
@@ -899,7 +905,11 @@ sap.ui.define([
 					mTypes[o.ID] = o;
 				});
 
-				return Hrx.list("Leaves", { $filter: "ApproverID_EmployeeID eq " + Hrx.literal(oMe.EmployeeID) }).then(function (aLeaves) {
+				// Full access (a testing aid) sees every request waiting, not just its own.
+				var CurrentUser = sap.ui.require("bsx/hrx/hrx2026/model/CurrentUser");
+				var bEveryone = !!(CurrentUser && CurrentUser.hasFullAccess());
+
+				return Hrx.list("Leaves", bEveryone ? {} : { $filter: "ApproverID_EmployeeID eq " + Hrx.literal(oMe.EmployeeID) }).then(function (aLeaves) {
 					var aPending = [];
 					aLeaves.filter(function (oLeave) {
 						return leaveStatus(oLeave) === "REQ";
@@ -1020,9 +1030,10 @@ sap.ui.define([
 					};
 				});
 
-				var bManager = !!oMe && aUsers.some(function (o) {
+				var CurrentUser = sap.ui.require("bsx/hrx/hrx2026/model/CurrentUser");
+				var bManager = !!oMe && (aUsers.some(function (o) {
 					return o.Manager_EmployeeID === oMe.EmployeeID;
-				});
+				}) || !!(CurrentUser && CurrentUser.isManagerException(oMe.WorkEmail))) && demoRole() !== "employee";
 
 				var oResult = {
 					loggedinUser: oMe ? [{

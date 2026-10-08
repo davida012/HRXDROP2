@@ -213,7 +213,7 @@ sap.ui.define([
 				var aDirectory = aResources
 					.filter(function (oResource) {
 						return oResource.IsActive === "Y" && oResource.Email &&
-							(CurrentUser.sameEmail(oResource.Email, this._sUserEmail) ||
+							(CurrentUser.hasFullAccess() || CurrentUser.sameEmail(oResource.Email, this._sUserEmail) ||
 								oResource.ManagerID === sManagerId);
 					}.bind(this))
 					.map(function (oResource) {
@@ -536,7 +536,8 @@ sap.ui.define([
 
 			return this._read("/Resources", {
 				urlParameters: { "$select": "EmpID,FName,LName,Email,BaseSiteKey,IsActive" },
-				filters: [
+				// Full access (a testing aid) may book for anyone; everyone else for their reports.
+				filters: CurrentUser.hasFullAccess() ? [new Filter("OrgID", FilterOperator.EQ, this._sOrgId)] : [
 					new Filter("OrgID", FilterOperator.EQ, this._sOrgId),
 					new Filter("ManagerID", FilterOperator.EQ, sManagerId)
 				]

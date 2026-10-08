@@ -131,7 +131,7 @@ sap.ui.define([
 				oModel.setProperty("/directory", this._strip(aResults[1])
 					.filter(function (oResource) {
 						return oResource.IsActive === "Y" && oResource.Email &&
-							(CurrentUser.sameEmail(oResource.Email, this._sUserEmail) ||
+							(CurrentUser.hasFullAccess() || CurrentUser.sameEmail(oResource.Email, this._sUserEmail) ||
 								oResource.ManagerID === sManagerId);
 					}.bind(this))
 					.map(function (oResource) {

@@ -2576,3 +2576,49 @@ body.hrxApp {
 	flex: 0 0 2.75rem !important;
 	text-align: right;
 }
+
+/* TESTING AID - the "View as (demo)" switch, laid over the rail above the user. */
+.hrxApp .hrxRailDemo {
+	position: absolute;
+	left: 0;
+	bottom: 70px;
+	z-index: 5;
+	width: 16rem;
+	box-sizing: border-box;
+	padding: 8px 16px 6px 22px;
+	gap: 8px;
+	transition: width .3s;
+}
+
+.hrxApp .hrxToolPage.hrxSideCollapsed ~ .hrxRailDemo {
+	display: none;
+}
+
+.hrxApp .hrxRailDemo > .sapMFlexItem:last-child {
+	flex: 1 1 auto !important;
+	min-width: 0 !important;
+}
+
+.hrxApp .hrxRailDemoLabel.sapMLabel {
+	font-size: 10px;
+	color: #5A7180;
+	white-space: nowrap;
+}
+
+.hrxApp .hrxRailDemoSelect.sapMSlt {
+	height: 1.75rem;
+	background: rgba(255, 255, 255, .06);
+	border: 1px solid rgba(255, 255, 255, .12);
+	border-radius: 6px;
+}
+
+.hrxApp .hrxRailDemoSelect .sapMSltLabel,
+.hrxApp .hrxRailDemoSelect .sapMSltArrow {
+	color: #CADAE4;
+	font-size: 11px;
+	line-height: 1.6rem;
+}
+
+.hrxToolPage .sapTntSideNavigation {
+	padding-bottom: 112px;
+}

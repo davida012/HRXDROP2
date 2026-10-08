@@ -212,7 +212,8 @@ sap.ui.define([
 		 * @returns {boolean} true when the signed-in user may open anybody's timesheet
 		 */
 		_seesEveryone: function () {
-			return TIMESHEET_ALL_ACCESS.indexOf((this._sUserEmail || "").toLowerCase()) !== -1;
+			return CurrentUser.hasFullAccess() ||
+				TIMESHEET_ALL_ACCESS.indexOf((this._sUserEmail || "").toLowerCase()) !== -1;
 		},
 
 		/**
