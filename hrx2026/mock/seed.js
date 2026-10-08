@@ -91,6 +91,9 @@ function build(oToday) {
 		byName[sName] = oUser;
 		db.WorkSchedule.push({ EmployeeID_EmployeeID: sId, Mo: true, Tu: true, We: true, Th: true, Fr: true, Sa: false, Su: false, AnnualLeaveQuota: "25", TargetUtilization: "80", TargetHrsPerWeek: "40:00", ...managed() });
 	});
+	// profile pictures: about two in three people have one uploaded to Document Management
+	const REPO = "0dc65852-e10f-4a43-8cab-43397e9739e4";
+	db.Users.forEach((u, i) => { if (i % 3 !== 2) { u.ImageRootID = REPO; u.ImageObjectID = "seed-" + u.EmployeeID; } });
 	const U = (n) => byName[n].EmployeeID;
 	// reporting lines: Dan runs the UK, Altaf runs India, Sam leads the delivery team
 	const samTeam = ["Christine Williams", "Kyle Barnfield", "Vikash Kumar", "Jack Roberts", "Tina Porter", "Inaya Farooqui", "Andrew Walker", "Nick Sullivan", "Megan Price", "Tom Hughes"];
@@ -106,6 +109,7 @@ function build(oToday) {
 	const clientNames = [["Allglass", SITE_UK], ["Allwyn", SITE_UK], ["Arla Foods", SITE_UK], ["Babcock International", SITE_UK], ["BAE Applied Intelligence", SITE_UK], ["BBC", SITE_UK], ["Bluestonex Consulting Ltd", SITE_UK], ["BluestoneX India sales and Marketing", SITE_IN], ["Brake Bros", SITE_UK], ["British Council", SITE_UK], ["Carlsberg Group", SITE_UK], ["Croda", SITE_UK], ["NATS", SITE_UK], ["Princes Foods", SITE_UK], ["XP Power", SITE_UK]];
 	const C = {};
 	db.Clients = clientNames.map(([n, s]) => { const o = { ID: uuid(), OrgID_ID: ORG_ID, ClientName: n, BaseSite: s, LogoRootID: null, LogoObjectID: null, IsActive: true, ...managed() }; C[n] = o.ID; return o; });
+	["Bluestonex Consulting Ltd", "Carlsberg Group", "Croda", "NATS", "Babcock International", "Princes Foods"].forEach((n) => { const c = db.Clients.find((x) => x.ClientName === n); c.LogoRootID = REPO; c.LogoObjectID = "seed-logo-" + c.ID.slice(0, 8); });
 	db.Contacts = [
 		["Allwyn", "Mark Biegel", "mark.biegel@allwyn.example", "+44 1923 000000"], ["Arla Foods", "Eli Holmgaard", "eli.holmgaard@arla.example", "+45 8900 0000"],
 		["BBC", "Guy Midgley", "guy.midgley@bbc.example", "+44 20 0000 0000"], ["Bluestonex Consulting Ltd", "Dan Barton", "dan.barton@bluestonex.com", "+44 1691 000000"],

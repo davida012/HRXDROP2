@@ -25,6 +25,10 @@ The HRX Drop 2 design, built as a UI5 application on the HRX CAP service.
 
 If that instance has another name in your space, change `bsx-hrx-xsuaa` in `mta.yaml`, or delete the `hrxservice` entry there and create a subaccount destination called `hrxservice` instead.
 
+## Profile pictures and logos
+
+Pictures live in SAP Document Management, as in hrx2023: a user's `ImageObjectID` (a client's `LogoObjectID`) is a document in repository `0dc65852-e10f-4a43-8cab-43397e9739e4` (`ImageRootID` / `LogoRootID`, fallback in `config.js`). The app shows them from `browser/<repository>/root?cmisselector=content&objectId=<id>`, which `xs-app.json` routes to the subaccount destination **`dms_service`** (the one hrx2023 uses). Uploads go through the HRX service's `Documents` entity (Manage Resources → Info → Picture, Manage Clients → Logo). Anyone without a picture, or whose picture cannot be loaded, shows their initials. Locally the mock serves illustrated stand-in pictures and keeps whatever you upload.
+
 ## Who sees what
 
 The signed-in user is resolved by `getUserDetail()`. Managers are those the service flags (`isManager`), anyone with people reporting to them, and the exceptions in `config.js`.

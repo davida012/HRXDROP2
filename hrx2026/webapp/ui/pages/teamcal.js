@@ -53,7 +53,7 @@ sap.ui.define(["../core", "../service", "../data"], function (hrx, svc, data) {
 			$("projectFilter").innerHTML = "<option value=\"all\">All projects</option>" + r[2].filter(function (p) { return used[p.ID] && p.IsActive !== false; }).map(function (p) { return "<option value=\"" + p.ID + "\">" + hrx.esc(p.ProjectDesc) + "</option>"; }).join("");
 			$("projectFilter").value = pcur && used[pcur] ? pcur : "all";
 			if (!$("resourceList").children.length) {
-				$("resourceList").innerHTML = st.users.map(function (u) { return "<label class=\"res-row\"><input type=\"checkbox\" value=\"" + u.EmpID + "\"><span class=\"a\">" + hrx.initials(u.Name) + "</span>" + hrx.esc(u.Name) + "</label>"; }).join("");
+				$("resourceList").innerHTML = st.users.map(function (u) { return "<label class=\"res-row\"><input type=\"checkbox\" value=\"" + u.EmpID + "\"><span class=\"a\">" + hrx.initials(u.Name) + hrx.photo(data.photoUrl(u.Picid, u.Pic)) + "</span>" + hrx.esc(u.Name) + "</label>"; }).join("");
 			}
 			grid();
 		} catch (e) { $("tcGrid").innerHTML = "<div style=\"grid-column:1/-1\">" + hrx.failed(e) + "</div>"; }
@@ -75,7 +75,7 @@ sap.ui.define(["../core", "../service", "../data"], function (hrx, svc, data) {
 		var mgr = data.isManager();
 		list.forEach(function (u) {
 			var p = data._byId.user[u.EmpID] || {};
-			html += "<div class=\"tc-cell tc-person\" data-emp=\"" + u.EmpID + "\"><div class=\"a\">" + hrx.initials(u.Name) + "</div><div><span class=\"pname\">" + hrx.esc(u.Name) + "</span><small class=\"tc-sub\">" + hrx.esc(data.userTypeLabel(p.UserType)) + " · " + hrx.esc(data.siteName(u.SiteID)) + "</small></div></div>";
+			html += "<div class=\"tc-cell tc-person\" data-emp=\"" + u.EmpID + "\"><div class=\"a\">" + hrx.initials(u.Name) + hrx.photo(data.photoUrl(u.Picid, u.Pic)) + "</div><div><span class=\"pname\">" + hrx.esc(u.Name) + "</span><small class=\"tc-sub\">" + hrx.esc(data.userTypeLabel(p.UserType)) + " · " + hrx.esc(data.siteName(u.SiteID)) + "</small></div></div>";
 			for (var i = 0; i < 7; i++) {
 				var s = hrx.iso(hrx.addDays(mon, i)), ls = (u.Leave || []).filter(function (l) { return l.Date === s; });
 				var free = !ls.length && i < 5 && mgr;

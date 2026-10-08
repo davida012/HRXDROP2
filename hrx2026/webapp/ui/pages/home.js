@@ -93,7 +93,7 @@ sap.ui.define(["../core", "../service", "../data", "../picker", "../preview", ".
 		var last = function (n) { return n.split(" ").slice(-1)[0]; };
 		var rows = people.slice().sort(function (a, b) { return (b.leave ? 1 : 0) - (a.leave ? 1 : 0) || last(a.name).localeCompare(last(b.name)) || a.name.localeCompare(b.name); });
 		$("teamTodayBody").innerHTML = rows.length ? rows.map(function (p) {
-			return "<tr><td><div class=\"tt-person\"><span class=\"a\">" + hrx.initials(p.name) + "</span>" + hrx.esc(p.name) + "</div></td><td>" + hrx.esc(data.siteName(p.site)) + "</td><td>" + (p.leave ? "<span class=\"pill info\">On leave · " + hrx.esc(p.leave) + "</span>" : "<span class=\"pill ok\">Working</span>") + "</td></tr>";
+			return "<tr><td><div class=\"tt-person\"><span class=\"a\">" + data.face(p.id, p.name) + "</span>" + hrx.esc(p.name) + "</div></td><td>" + hrx.esc(data.siteName(p.site)) + "</td><td>" + (p.leave ? "<span class=\"pill info\">On leave · " + hrx.esc(p.leave) + "</span>" : "<span class=\"pill ok\">Working</span>") + "</td></tr>";
 		}).join("") : "<tr><td colspan=\"3\" class=\"tbl-empty\">Nobody in your organisation yet</td></tr>";
 	}
 	var pending = [];
@@ -103,7 +103,7 @@ sap.ui.define(["../core", "../service", "../data", "../picker", "../preview", ".
 		$("pendingList").innerHTML = groups.length ? groups.map(apprRow).join("") : "<div class=\"appr-empty\">Nothing waiting for approval</div>";
 	}
 	function apprRow(r) {
-		return "<div class=\"appr-row\" data-id=\"" + r.id + "\"><div class=\"a\">" + hrx.initials(r.name) + "</div><div class=\"appr-main\"><div class=\"appr-name\">" + hrx.esc(r.name) + "</div><div class=\"appr-meta\">" + r.label + "</div><div class=\"appr-meta\">" + hrx.esc(r.type) + " · " + r.duration + (r.comment ? " · “" + hrx.esc(r.comment) + "”" : "") + "</div></div><div class=\"appr-days\">" + r.days + (r.days === 1 ? " day" : " days") + "</div><div class=\"appr-actions\"><button class=\"btn approve sm\" type=\"button\" data-act=\"approve\">" + hrx.ICON.check + "Approve</button><button class=\"btn reject sm\" type=\"button\" data-act=\"reject\">" + hrx.ICON.x + "Reject</button></div></div>";
+		return "<div class=\"appr-row\" data-id=\"" + r.id + "\"><div class=\"a\">" + data.face(r.empId, r.name) + "</div><div class=\"appr-main\"><div class=\"appr-name\">" + hrx.esc(r.name) + "</div><div class=\"appr-meta\">" + r.label + "</div><div class=\"appr-meta\">" + hrx.esc(r.type) + " · " + r.duration + (r.comment ? " · “" + hrx.esc(r.comment) + "”" : "") + "</div></div><div class=\"appr-days\">" + r.days + (r.days === 1 ? " day" : " days") + "</div><div class=\"appr-actions\"><button class=\"btn approve sm\" type=\"button\" data-act=\"approve\">" + hrx.ICON.check + "Approve</button><button class=\"btn reject sm\" type=\"button\" data-act=\"reject\">" + hrx.ICON.x + "Reject</button></div></div>";
 	}
 	function onDecide(e) {
 		var btn = e.target.closest("button[data-act]"); if (!btn) { return; }

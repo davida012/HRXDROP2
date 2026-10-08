@@ -70,10 +70,23 @@ sap.ui.define(["./core", "./service", "./config"], function (hrx, svc, config) {
 		/* ── reference data ── */
 		users: function () {
 			return once("users", function () {
-				return svc.Users.list({ $select: "EmployeeID,FirstName,LastName,WorkEmail,MobileNo,UserType,BaseSite_ID,Manager_EmployeeID,TargetUtilization,TargetHrsPerWeek,BonusPercent,PercentRate,IsActive,OrgID_ID,ImageObjectID", $orderby: "FirstName,LastName" })
-					.then(function (a) { a.forEach(function (p) { p.name = ((p.FirstName || "") + " " + (p.LastName || "")).trim(); }); return a; });
+				return svc.Users.list({ $select: "EmployeeID,FirstName,LastName,WorkEmail,MobileNo,UserType,BaseSite_ID,Manager_EmployeeID,TargetUtilization,TargetHrsPerWeek,BonusPercent,PercentRate,IsActive,OrgID_ID,ImageRootID,ImageObjectID", $orderby: "FirstName,LastName" })
+					.then(function (a) { data._people = {}; a.forEach(function (p) { p.name = ((p.FirstName || "") + " " + (p.LastName || "")).trim(); data._people[p.EmployeeID] = p; }); return a; });
 			});
 		},
+		/**
+		 * Address of a profile picture or logo in SAP Document Management, the way hrx2023
+		 * shows them: the approuter route /browser/* goes to the subaccount destination
+		 * dms_service. Empty when nothing has been uploaded.
+		 */
+		photoUrl: function (sRootId, sObjectId) {
+			if (!sObjectId) { return ""; }
+			return sap.ui.require.toUrl("bsx/hrx/hrx2026") + "/browser/" + encodeURIComponent(sRootId || config.DMS_REPOSITORY) + "/root?cmisselector=content&objectId=" + encodeURIComponent(sObjectId);
+		},
+		/** the picture of an HRX employee, by employee ID (from the cached people list) */
+		photoOf: function (sEmpId) { var p = data._people && data._people[sEmpId]; return p ? data.photoUrl(p.ImageRootID, p.ImageObjectID) : ""; },
+		/** initials with the employee's picture over them, if they have one */
+		face: function (sEmpId, sName) { return hrx.initials(sName) + hrx.photo(data.photoOf(sEmpId)); },
 		sites: function () { return once("sites", function () { return svc.Sites.list({ $orderby: "SiteDesc" }); }); },
 		leaveTypes: function () { return once("leaveTypes", function () { return svc.LeaveType.list({ $orderby: "LeaveCategoryDesc" }); }); },
 		clients: function () { return once("clients", function () { return svc.Clients.list({ $orderby: "ClientName" }); }); },

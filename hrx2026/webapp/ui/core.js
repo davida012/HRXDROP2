@@ -94,6 +94,11 @@ sap.ui.define([], function () {
 		},
 		workdays: function (a, b) { var n = 0; var c = new Date(a); while (c <= b) { var g = c.getDay(); if (g !== 0 && g !== 6) { n++; } c.setDate(c.getDate() + 1); } return n; },
 		hash: function (s) { var h = 5381; for (var i = 0; i < s.length; i++) { h = ((h << 5) + h + s.charCodeAt(i)) >>> 0; } return h; },
+		/**
+		 * A picture laid over an avatar's initials. When there is no picture, or it cannot
+		 * be loaded (no document, no access), the image removes itself and the initials show.
+		 */
+		photo: function (sUrl) { return sUrl ? "<img class=\"hrx-photo\" src=\"" + hrx.esc(sUrl) + "\" alt=\"\" loading=\"lazy\" onerror=\"this.remove()\">" : ""; },
 		initials: function (n) { return String(n || "").split(/\s+/).filter(Boolean).slice(0, 2).map(function (x) { return x[0]; }).join("").toUpperCase(); },
 		pill: function (k, t) { return "<span class=\"pill " + k + "\">" + hrx.esc(t) + "</span>"; },
 		num: function (n, d) { return Number(n || 0).toLocaleString("en-GB", { minimumFractionDigits: d == null ? 2 : d, maximumFractionDigits: d == null ? 2 : d }); },

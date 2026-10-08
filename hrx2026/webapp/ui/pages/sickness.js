@@ -40,7 +40,7 @@ sap.ui.define(["../core", "../service", "../data", "../picker", "../preview"], f
 		$("trigList").innerHTML = trigs.length ? trigs.map(function (t) {
 			var pill = t.status === "open" ? hrx.pill("crit", "Open") : t.status === "actioned" ? hrx.pill("ok", "Actioned") : hrx.pill("neu", "Dismissed");
 			var hk = "hist:" + t.id;
-			return "<div class=\"card trig" + (t.status !== "open" ? " done" : "") + "\" data-id=\"" + t.id + "\"><div class=\"trig-head\"><span class=\"avatar-sm grad-av big\">" + hrx.initials(t.name) + "</span><div><div class=\"nm\">" + hrx.esc(t.name) + "</div><div class=\"sub\">" + hrx.rangeLabel(t.from, t.to) + "</div></div>" + pill + "</div>" +
+			return "<div class=\"card trig" + (t.status !== "open" ? " done" : "") + "\" data-id=\"" + t.id + "\"><div class=\"trig-head\"><span class=\"avatar-sm grad-av big\">" + data.face(t.id, t.name) + "</span><div><div class=\"nm\">" + hrx.esc(t.name) + "</div><div class=\"sub\">" + hrx.rangeLabel(t.from, t.to) + "</div></div>" + pill + "</div>" +
 				"<div class=\"trig-body\"><div class=\"trig-rule\">" + data.SICK_RULE + "</div><div class=\"trig-sum\">" + t.list.length + " instances · " + t.days.toFixed(1) + " days total</div>" +
 				"<button class=\"trig-toggle" + (expanded[hk] ? " open" : "") + "\" type=\"button\" data-toggle=\"" + hk + "\"><span class=\"chev\">" + hrx.ICON.chr + "</span><span>Absence history</span><span class=\"trig-count\">" + t.list.length + " absences</span></button>" +
 				(expanded[hk] ? hrx.tbl([{ h: "Date" }, { h: "Duration", al: "center" }, { h: "Reason" }], t.list.map(function (a) { return [hrx.fmtRange(a.start, a.end), dur(a.days), hrx.esc(a.comment || "—")]; })) : "") +
@@ -57,14 +57,14 @@ sap.ui.define(["../core", "../service", "../data", "../picker", "../preview"], f
 		var list = Object.keys(by).filter(function (k) { return !(st[k] && st[k].complete === by[k].id); }).map(function (k) { return { id: k, g: by[k], steps: (st[k] && st[k].grp === by[k].id && st[k].steps) || [true, false, false, false, false] }; });
 		$("rtwList").innerHTML = list.length ? list.map(function (r) {
 			var p = data._byId.user[r.id] || {};
-			return "<div class=\"card rtw\" data-id=\"" + r.id + "\" data-grp=\"" + r.g.id + "\"><div class=\"card-head\"><div class=\"person\"><span class=\"avatar-sm grad-av\">" + hrx.initials(r.g.name) + "</span><div><b>" + hrx.esc(r.g.name) + "</b><small>Off sick " + r.g.label + "</small></div></div>" + hrx.pill("warn", "In progress") + "</div>" +
+			return "<div class=\"card rtw\" data-id=\"" + r.id + "\" data-grp=\"" + r.g.id + "\"><div class=\"card-head\"><div class=\"person\"><span class=\"avatar-sm grad-av\">" + data.face(r.id, r.g.name) + "</span><div><b>" + hrx.esc(r.g.name) + "</b><small>Off sick " + r.g.label + "</small></div></div>" + hrx.pill("warn", "In progress") + "</div>" +
 				"<div class=\"card-body--padded\"><div class=\"trig-lbl\" style=\"margin-top:0\">Process steps</div><div class=\"steps\">" + preview.RTW_STEPS.map(function (s, i) { var done = r.steps[i]; return "<div class=\"step" + (done ? " done" : "") + "\"><span class=\"step-i\">" + (done ? hrx.ICON.check : "") + "</span><span class=\"step-t\">" + s + "</span>" + (done ? "" : "<button class=\"btn ghost sm\" type=\"button\" data-act=\"step\" data-i=\"" + i + "\">Mark done</button>") + "</div>"; }).join("") + "</div>" +
 				"<div class=\"rtw-foot\"><a class=\"btn ghost sm\" href=\"mailto:" + hrx.esc(p.WorkEmail || "") + "?subject=Return to work\">" + hrx.ICON.mail + "Email</a><button class=\"btn primary sm\" type=\"button\" data-act=\"complete\">Mark RTW complete</button></div></div></div>";
 		}).join("") : "<div class=\"card\" style=\"grid-column:1/-1\">" + hrx.empty("No return-to-work processes are open", "Anyone off sick in the last 30 days appears here.") + "</div>";
 
 		$("sickCount").textContent = sick.length + " absences";
 		$("sickTable").innerHTML = hrx.tbl([{ h: "Employee" }, { h: "Date" }, { h: "Duration", al: "center" }, { h: "Reason" }, { h: "Status", al: "right" }], sick.map(function (a) {
-			return ["<div class=\"person\"><span class=\"avatar-sm\">" + hrx.initials(a.name) + "</span><b>" + hrx.esc(a.name) + "</b></div>", hrx.fmtRange(a.start, a.end), dur(a.days), hrx.esc(a.comment || "—"), a.status === "pending" ? hrx.pill("warn", "Requested") : hrx.pill("ok", "Recorded")];
+			return ["<div class=\"person\"><span class=\"avatar-sm\">" + data.face(a.empId, a.name) + "</span><b>" + hrx.esc(a.name) + "</b></div>", hrx.fmtRange(a.start, a.end), dur(a.days), hrx.esc(a.comment || "—"), a.status === "pending" ? hrx.pill("warn", "Requested") : hrx.pill("ok", "Recorded")];
 		}), "No sickness recorded in the last 12 months");
 		$("sickAllCard").classList.toggle("open", !!expanded.all); $("sickTable").style.display = expanded.all ? "" : "none";
 	}

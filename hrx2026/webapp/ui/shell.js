@@ -55,6 +55,7 @@ sap.ui.define([
 				shell.notifications.load();
 				hrx.on("pending", function () { shell.refreshHealth(); shell.notifications.load(); });
 				hrx.on("leave", function () { shell.refreshHealth(); });
+				hrx.on("me", function () { shell.renderWho(); });
 				hrx.on("time", function () { shell.refreshHealth(); shell.notifications.load(); });
 				oRouter.attachRouteMatched(function (e) { shell.show(e.getParameter("name")); });
 				oRouter.initialize();
@@ -187,7 +188,7 @@ sap.ui.define([
 
 		renderWho: function () {
 			var me = data.me, root = hrx.root;
-			root.querySelector("#sideAvatar").textContent = hrx.initials(me.name);
+			root.querySelector("#sideAvatar").innerHTML = hrx.esc(hrx.initials(me.name)) + hrx.photo(data.photoUrl(me.ImageRootID, me.ImageObjectID));
 			root.querySelector("#sideName").textContent = me.name;
 			shell.roleLabel();
 		},

@@ -17,7 +17,14 @@ sap.ui.define(["../core", "../service", "../data", "../md"], function (hrx, svc,
 	async function reload() {
 		var r = await Promise.all([svc.Users.list({ $expand: "WorkSchedule,Manager($select=EmployeeID,FirstName,LastName,WorkEmail)", $orderby: "FirstName,LastName" }), data.sites()]);
 		items = r[0]; sites = r[1];
+		// every page reads people (and their pictures) from the shared list: refresh it
 		data.invalidate("users");
+		data.users();
+		var mine = items.find(function (u) { return u.EmployeeID === data.me.EmployeeID; });
+		if (mine && (mine.ImageObjectID !== data.me.ImageObjectID || full(mine) !== data.me.name)) {
+			Object.assign(data.me, { ImageRootID: mine.ImageRootID, ImageObjectID: mine.ImageObjectID, FirstName: mine.FirstName, LastName: mine.LastName, name: full(mine) });
+			hrx.emit("me");
+		}
 	}
 	var infoSpecs = function (r) { return [{ k: "FirstName", label: "First name", req: true, val: r.FirstName, ph: "Enter first name" }, { k: "LastName", label: "Last name", val: r.LastName, ph: "Enter last name" }, { k: "WorkEmail", label: "Email", type: "ro", val: r.WorkEmail }, { k: "MobileNo", label: "Mobile", val: r.MobileNo, ph: "Enter mobile number" }, { k: "BaseSite_ID", label: "Location", type: "select", req: true, ph: "Select base location", opts: siteOpts(), val: r.BaseSite_ID }, { k: "UserType", label: "Resource type", type: "select", req: true, ph: "Select resource type", opts: typeOpts, val: r.UserType }, { k: "IsActive", label: "Active", type: "toggle", val: r.IsActive !== false }, { k: "pic", label: "Picture", type: "file", accept: "image/png,image/jpeg", hint: "jpg/png file only" + (r.ImageObjectID ? " · a picture is on file" : "") }]; };
 
@@ -77,8 +84,8 @@ sap.ui.define(["../core", "../service", "../data", "../md"], function (hrx, svc,
 			items: function () { return items; }, reload: reload, key: function (r) { return r.EmployeeID; },
 			search: function (r) { return [full(r), r.WorkEmail, data.siteName(r.BaseSite_ID), r.EmployeeID].join(" "); },
 			pass: function (r, f) { return (!f.type || r.UserType === f.type) && (!f.status || (f.status === "Active") === (r.IsActive !== false)) && (!f.site || r.BaseSite_ID === f.site); },
-			row: function (r) { return "<span class=\"avatar-sm grad-av big\">" + hrx.initials(full(r)) + "</span><div class=\"main\"><div class=\"t\">" + hrx.esc(full(r)) + "</div><div class=\"s\">" + hrx.esc(r.WorkEmail) + "</div></div><div class=\"r\">" + hrx.pill(r.IsActive !== false ? "ok" : "warn", r.IsActive !== false ? "Active" : "Inactive") + "<div style=\"margin-top:3px\">" + data.userTypeLabel(r.UserType) + " · " + hrx.esc(data.siteName(r.BaseSite_ID)) + "</div></div>"; },
-			head: function (r) { return "<span class=\"avatar-sm grad-av big\">" + hrx.initials(full(r)) + "</span><div><div class=\"nm\">" + hrx.esc(full(r)) + "</div><div class=\"sub\">" + data.userTypeLabel(r.UserType) + " · " + hrx.esc(data.siteName(r.BaseSite_ID)) + " · " + r.EmployeeID + "</div></div>" + hrx.pill(r.IsActive !== false ? "ok" : "warn", r.IsActive !== false ? "Active" : "Inactive"); },
+			row: function (r) { return "<span class=\"avatar-sm grad-av big\">" + hrx.initials(full(r)) + hrx.photo(data.photoUrl(r.ImageRootID, r.ImageObjectID)) + "</span><div class=\"main\"><div class=\"t\">" + hrx.esc(full(r)) + "</div><div class=\"s\">" + hrx.esc(r.WorkEmail) + "</div></div><div class=\"r\">" + hrx.pill(r.IsActive !== false ? "ok" : "warn", r.IsActive !== false ? "Active" : "Inactive") + "<div style=\"margin-top:3px\">" + data.userTypeLabel(r.UserType) + " · " + hrx.esc(data.siteName(r.BaseSite_ID)) + "</div></div>"; },
+			head: function (r) { return "<span class=\"avatar-sm grad-av big\">" + hrx.initials(full(r)) + hrx.photo(data.photoUrl(r.ImageRootID, r.ImageObjectID)) + "</span><div><div class=\"nm\">" + hrx.esc(full(r)) + "</div><div class=\"sub\">" + data.userTypeLabel(r.UserType) + " · " + hrx.esc(data.siteName(r.BaseSite_ID)) + " · " + r.EmployeeID + "</div></div>" + hrx.pill(r.IsActive !== false ? "ok" : "warn", r.IsActive !== false ? "Active" : "Inactive"); },
 			tabs: tabs,
 			footer: function (r, tab) { return "<div class=\"md-foot\"><button class=\"btn danger\" type=\"button\" data-act=\"delete\">" + hrx.ICON.trash + "Delete</button>" + (tab === "leave" || tab === "assets" ? "" : "<button class=\"btn primary\" type=\"button\" data-act=\"save\">Save</button>") + "</div>"; },
 			onAdd: function (a) {

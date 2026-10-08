@@ -15,6 +15,13 @@
       "csrfProtection": true
     },
     {
+      "source": "^/browser/(.*)$",
+      "target": "/browser/$1",
+      "destination": "dms_service",
+      "authenticationType": "xsuaa",
+      "csrfProtection": false
+    },
+    {
       "source": "^/resources/(.*)$",
       "target": "/resources/$1",
       "authenticationType": "none",

@@ -98,7 +98,7 @@ sap.ui.define(["../core", "../service", "../data"], function (hrx, svc, data) {
 				$("mgbHint").textContent = rows.length + " employees · " + period;
 				$("mgbTable").innerHTML = hrx.tbl([{ h: "Employee" }, { h: "Utilisation" }, { h: "Target", al: "right" }, { h: "Bonus", al: "right" }, { h: "", al: "right" }], rows.map(function (u) {
 					var pct = Number(u.utilization || 0), tgt = Number(u.TargetUtilization || 0), st = tgt && pct >= tgt ? "ok" : pct >= tgt * 0.6 ? "warn" : "crit";
-					return ["<div class=\"person\"><span class=\"avatar-sm\">" + hrx.initials(u.Name) + "</span><div><b>" + hrx.esc(u.Name) + "</b><small>" + hrx.esc(data.siteName(u.BaseSiteKey || (data._byId.user[u.UserID] || {}).BaseSite_ID)) + "</small></div></div>",
+					return ["<div class=\"person\"><span class=\"avatar-sm\">" + data.face(u.UserID, u.Name) + "</span><div><b>" + hrx.esc(u.Name) + "</b><small>" + hrx.esc(data.siteName(u.BaseSiteKey || (data._byId.user[u.UserID] || {}).BaseSite_ID)) + "</small></div></div>",
 						"<div class=\"ack-bar\">" + hrx.bar(tgt ? pct / tgt * 100 : pct, st, pct.toFixed(1) + "%") + "</div>", tgt ? tgt + "%" : "—",
 						u.isBonusSubmitted ? hrx.pill("ok", "Submitted") : hrx.pill("neu", "Not submitted"),
 						"<button class=\"btn ghost sm\" type=\"button\" data-emp=\"" + u.UserID + "\">Review</button>"];

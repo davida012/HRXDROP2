@@ -58,8 +58,8 @@ sap.ui.define(["../core", "../service", "../data", "../md", "../preview"], funct
 			title: "Clients", searchPh: "Search name, location or contact", addTip: "Add client", emptyList: "No clients match the current search",
 			items: function () { return items; }, reload: reload, key: function (c) { return c.ID; },
 			search: function (c) { var k = contactOf(c) || {}; return [c.ClientName, siteLabel(c), k.WorkEmail, c.ID].join(" "); },
-			row: function (c) { var k = contactOf(c) || {}; return "<span class=\"logo-c\">" + init(c.ClientName) + "</span><div class=\"main\"><div class=\"t\">" + hrx.esc(c.ClientName) + "</div><div class=\"s\">" + hrx.esc(c.ID) + "</div></div><div class=\"r\">" + hrx.esc(siteLabel(c)) + "<div>" + hrx.esc(k.WorkEmail || "") + "</div></div>"; },
-			head: function (c) { return "<span class=\"logo-c big\">" + init(c.ClientName) + "</span><div><div class=\"nm\">" + hrx.esc(c.ClientName) + "</div><div class=\"sub\">" + hrx.esc(c.ID) + (siteLabel(c) ? " · " + hrx.esc(siteLabel(c)) : "") + "</div></div>" + (c.IsActive === false ? hrx.pill("warn", "Inactive") : ""); },
+			row: function (c) { var k = contactOf(c) || {}; return "<span class=\"logo-c\">" + init(c.ClientName) + hrx.photo(data.photoUrl(c.LogoRootID, c.LogoObjectID)) + "</span><div class=\"main\"><div class=\"t\">" + hrx.esc(c.ClientName) + "</div><div class=\"s\">" + hrx.esc(c.ID) + "</div></div><div class=\"r\">" + hrx.esc(siteLabel(c)) + "<div>" + hrx.esc(k.WorkEmail || "") + "</div></div>"; },
+			head: function (c) { return "<span class=\"logo-c big\">" + init(c.ClientName) + hrx.photo(data.photoUrl(c.LogoRootID, c.LogoObjectID)) + "</span><div><div class=\"nm\">" + hrx.esc(c.ClientName) + "</div><div class=\"sub\">" + hrx.esc(c.ID) + (siteLabel(c) ? " · " + hrx.esc(siteLabel(c)) : "") + "</div></div>" + (c.IsActive === false ? hrx.pill("warn", "Inactive") : ""); },
 			tabs: tabs,
 			footer: function (c, tab) { return tab === "basic" ? "<div class=\"md-foot\" style=\"justify-content:flex-end\"><button class=\"btn primary\" type=\"button\" data-act=\"save\">Save</button></div>" : ""; },
 			onAdd: function (a) {

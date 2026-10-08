@@ -437,6 +437,46 @@ function createService(today, sUser) {
 	return { db, query, find, create, fn, act, expandRow, parseExpand, KEYS, uuid };
 }
 
+/* ── Document Management stand-in: /browser/<repository>/root?cmisselector=content&objectId=<id> ── */
+const uploads = {};   // objectId -> { type, body }
+function hashOf(s) { let h = 5381; for (const c of s) { h = ((h << 5) + h + c.charCodeAt(0)) >>> 0; } return h; }
+// an illustrated head-and-shoulders avatar, so seeded pictures are obviously not real people
+function avatarSvg(sSeed) {
+	const h = hashOf(sSeed), pick = (a, n) => a[(h >>> n) % a.length];
+	const bg = pick([["#26AAE2", "#756EE5"], ["#2DD4BF", "#26AAE2"], ["#E5B159", "#E5484D"], ["#756EE5", "#C43FF6"], ["#1FAE72", "#2DD4BF"], ["#E5484D", "#C43FF6"]], 0);
+	const skin = pick(["#F6D2B8", "#E8B48F", "#C68A62", "#8D5A3B", "#5C3A26", "#FBE0CF"], 3);
+	const hair = pick(["#1E1B18", "#4A2F1D", "#8A5A2B", "#C9A15A", "#6B6B6B", "#2C1E14"], 6);
+	const shirt = pick(["#33343A", "#FFFFFF", "#0A0A0B", "#1888BC", "#45464C"], 9);
+	const long = (h >>> 12) % 2;
+	return "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='" + bg[0] + "'/><stop offset='1' stop-color='" + bg[1] + "'/></linearGradient></defs>" +
+		"<rect width='120' height='120' fill='url(#g)'/>" +
+		(long ? "<path d='M30 62c0-24 14-38 30-38s30 14 30 38v34H30z' fill='" + hair + "'/>" : "") +
+		"<path d='M18 120c4-26 22-36 42-36s38 10 42 36z' fill='" + shirt + "'/><rect x='51' y='70' width='18' height='18' rx='6' fill='" + skin + "'/>" +
+		"<ellipse cx='60' cy='56' rx='21' ry='24' fill='" + skin + "'/>" +
+		"<path d='M38 54c0-17 10-26 22-26s22 9 22 26c-6-9-14-12-22-12s-16 3-22 12z' fill='" + hair + "'/></svg>";
+}
+function logoSvg(sSeed, sName) {
+	const h = hashOf(sSeed), c = ["#1888BC", "#0F7B4F", "#C43FF6", "#E5484D", "#D97706", "#33343A"][h % 6];
+	const word = String(sName || "").split(/\s+/)[0].slice(0, 9);
+	return "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' fill='#fff'/>" +
+		(h % 2 ? "<circle cx='60' cy='46' r='22' fill='" + c + "'/><circle cx='60' cy='46' r='10' fill='#fff'/>" : "<path d='M60 22l24 24-24 24-24-24z' fill='" + c + "'/>") +
+		"<text x='60' y='96' text-anchor='middle' font-family='Helvetica,Arial,sans-serif' font-weight='700' font-size='15' fill='" + c + "'>" + word + "</text></svg>";
+}
+// the file part of a multipart/form-data body
+function filePart(buf, sType) {
+	const m = /boundary=(?:"([^"]+)"|([^;]+))/i.exec(sType || ""); if (!m) { return null; }
+	const b = Buffer.from("--" + (m[1] || m[2]));
+	let i = buf.indexOf(b);
+	while (i !== -1) {
+		const next = buf.indexOf(b, i + b.length); if (next === -1) { break; }
+		const part = buf.slice(i + b.length + 2, next - 2), sep = part.indexOf("\r\n\r\n");
+		const head = part.slice(0, sep).toString("utf8");
+		if (/filename=/i.test(head)) { return { type: (/content-type:\s*([^\r\n]+)/i.exec(head) || [])[1] || "application/octet-stream", body: part.slice(sep + 4) }; }
+		i = next;
+	}
+	return null;
+}
+
 function httpError(status, message) { const e = new Error(message); e.status = status; return e; }
 
 function readBody(req) {
@@ -485,6 +525,15 @@ module.exports = function ({ log, options }) {
 	return async function (req, res, next) {
 		const u = new URL(req.originalUrl || req.url, "http://localhost");
 		// the approuter's user API, which tells the app who is signed in
+		const pic = /^\/browser\/[^/]+\/root$/.exec(u.pathname);
+		if (pic && u.searchParams.get("cmisselector") === "content") {
+			const id = u.searchParams.get("objectId") || "";
+			if (uploads[id]) { send(res, 200, uploads[id].body, { "Content-Type": uploads[id].type, "Cache-Control": "no-cache" }); return; }
+			const person = svc.db.Users.find((x) => x.ImageObjectID === id), client = svc.db.Clients.find((x) => x.LogoObjectID === id);
+			if (person || client) { send(res, 200, person ? avatarSvg(person.EmployeeID + person.FirstName) : logoSvg(client.ID, client.ClientName), { "Content-Type": "image/svg+xml", "Cache-Control": "max-age=3600" }); return; }
+			send(res, 404, { exception: "objectNotFound", message: "Object not found: " + id });
+			return;
+		}
 		if (u.pathname === "/user-api/currentUser") { send(res, 200, { email: sUser, name: sUser, scopes: [] }, { "Content-Type": "application/json" }); return; }
 		if (!u.pathname.startsWith(sMount)) { next(); return; }
 		const rest = decodeURIComponent(u.pathname.slice(sMount.length)).replace(/^\//, "");
@@ -519,11 +568,15 @@ module.exports = function ({ log, options }) {
 			const key = parseParams(args.includes("=") ? args : svc.KEYS[name][0] + "=" + args);
 			if (name === "Documents" && prop === "content") {
 				const body = await readBody(req);
-				const doc = { objectID: key.objectID, objectFolderID: "mock-" + Date.now(), objectType: key.objectType, mediatype: req.headers["content-type"], filename: "upload", size: body.length };
+				const file = filePart(Buffer.isBuffer(body) ? body : Buffer.from(""), req.headers["content-type"]);
+				if (!file) { throw httpError(400, "Please upload the file"); }
+				const doc = { objectID: key.objectID, objectFolderID: "doc-" + Date.now().toString(36), objectType: key.objectType, mediatype: file.type, size: file.body.length };
+				if (key.objectFolderID) { delete uploads[key.objectFolderID]; }
+				uploads[doc.objectFolderID] = { type: file.type, body: file.body };
 				const set = { User: "Users", Client: "Clients", Site: "Sites", Org: "Organisations" }[key.objectType];
 				if (!set) { throw httpError(400, "Please pass the valid object type"); }
 				const target = set === "Users" ? svc.db.Users.find((x) => x.EmployeeID === key.objectID) : svc.db[set].find((x) => x.ID === key.objectID);
-				if (target) { target[set === "Users" ? "ImageObjectID" : "LogoObjectID"] = doc.objectFolderID; }
+				if (target) { target[set === "Users" ? "ImageObjectID" : "LogoObjectID"] = doc.objectFolderID; target[set === "Users" ? "ImageRootID" : "LogoRootID"] = "0dc65852-e10f-4a43-8cab-43397e9739e4"; }
 				svc.db.Documents.push(doc);
 				send(res, 200, { value: "Successfully uploaded" });
 				return;
