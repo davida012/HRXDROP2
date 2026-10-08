@@ -1,22 +1,48 @@
 sap.ui.define([
-	"./Backend"
-], function (Backend) {
+	"./Backend",
+	"./Hrx",
+	"./SicknessPolicy"
+], function (Backend, Hrx, SicknessPolicy) {
 	"use strict";
 
 	/*
-	 * The sickness backend - the one file to touch when the service is delivered.
+	 * The sickness backend.
 	 *
-	 * It is not built yet, so ENDPOINT is unset: every read answers with nothing (the
-	 * page shows its empty states) and every write fails with a NOT_BOUND error the
-	 * page reports as "not connected yet". Once the service exists, set ENDPOINT -
-	 * e.g. Backend.SERVICE_ROOT + "/hrx/sickness.xsjs" - and, if its commands or
-	 * field names differ from the ones below, map them here so the page keeps
-	 * receiving the shapes documented on each method.
+	 * Absences are real: they are leave of the "Sick" type in the HRX service, recorded
+	 * by the manager on the employee's behalf (no approval needed), so they also show
+	 * on My Leave, the team calendar and in the timesheet's expected hours. One request
+	 * - its rows share a LeaveGrpID - is one absence instance.
 	 *
-	 * Assumed to follow the other xsjs services: a "cmd" query parameter picks the
-	 * operation, and each answer is an envelope of { msgType: "S", data: ... }.
+	 * The HRX service has nowhere to keep the rest - trigger reviews (follow-up emails,
+	 * dismissals) and return-to-work checklists - so those still go to ENDPOINT, a
+	 * service still to be built. Unset, their reads answer with nothing and their
+	 * writes fail with a NOT_BOUND error the page reports. Once that service exists,
+	 * set ENDPOINT - e.g. Backend.SERVICE_ROOT + "/hrx/sickness.xsjs" - and map its
+	 * commands below if they differ.
 	 */
 	var ENDPOINT = null;
+
+	// RequesterComments holds the reason and any notes; it is 255 characters long.
+	var COMMENT_LENGTH = 255;
+	var NOTES_SEPARATOR = " — ";
+
+	function sickTypeId() {
+		return Hrx.list("LeaveType").then(function (aTypes) {
+			var oSick = aTypes.filter(function (oType) {
+				return /sick/i.test(oType.LeaveCategoryDesc || "");
+			})[0];
+			if (!oSick) {
+				throw new Error("The HRX service has no sick leave type.");
+			}
+			return oSick.ID;
+		});
+	}
+
+	function signedInEmpId() {
+		var CurrentUser = sap.ui.require("bsx/hrx/hrx2026/model/CurrentUser");
+		var oProfile = CurrentUser && CurrentUser.get();
+		return (oProfile && oProfile.empID) || null;
+	}
 
 	function notBound() {
 		var oError = new Error("The sickness service is not connected yet.");
@@ -44,9 +70,16 @@ sap.ui.define([
 	return {
 
 		/**
-		 * @returns {boolean} true once the service is bound
+		 * @returns {boolean} true: absences are read from the HRX service
 		 */
 		isBound: function () {
+			return true;
+		},
+
+		/**
+		 * @returns {boolean} true once trigger reviews and return to work can be saved
+		 */
+		isReviewBound: function () {
 			return !!ENDPOINT;
 		},
 
@@ -60,7 +93,48 @@ sap.ui.define([
 		 * FitNote ("Y"/"N")
 		 */
 		getAbsences: function (sOrgId, sFrom, sTo) {
-			return get("absences", { OrgID: sOrgId, FromDate: sFrom, ToDate: sTo });
+			return sickTypeId().then(function (sSickId) {
+				return Hrx.list("Leaves", {
+					$filter: "LeaveCategoryId_ID eq " + sSickId + " and StartDate le " + sTo + " and EndDate ge " + sFrom,
+					$expand: "EmpID($select=EmployeeID,FirstName,LastName,WorkEmail)"
+				});
+			}).then(function (aRows) {
+				var mGroups = {};
+				aRows.forEach(function (oRow) {
+					var sKey = oRow.LeaveGrpID || oRow.ID;
+					(mGroups[sKey] = mGroups[sKey] || []).push(oRow);
+				});
+
+				return Object.keys(mGroups).map(function (sKey) {
+					var aDays = mGroups[sKey];
+					var oFirst = aDays[0];
+					var oEmployee = oFirst.EmpID || {};
+					var sStart = aDays.reduce(function (s, o) {
+						return o.StartDate < s ? o.StartDate : s;
+					}, oFirst.StartDate);
+					var sEnd = aDays.reduce(function (s, o) {
+						return o.EndDate > s ? o.EndDate : s;
+					}, oFirst.EndDate);
+					var fDays = aDays.reduce(function (fTotal, o) {
+						return fTotal + (/^(AM|PM)$/i.test(o.DayTime || "") ? 0.5 :
+							SicknessPolicy.workingDays(SicknessPolicy.parseDay(o.StartDate), SicknessPolicy.parseDay(o.EndDate)));
+					}, 0);
+					var aComment = String(oFirst.RequesterComments || "").split(NOTES_SEPARATOR);
+
+					return {
+						AbsenceID: sKey,
+						EmpID: oFirst.EmpID_EmployeeID,
+						Name: ((oEmployee.FirstName || "") + " " + (oEmployee.LastName || "")).trim(),
+						Email: String(oEmployee.WorkEmail || "").toLowerCase(),
+						StartDate: sStart,
+						EndDate: sEnd,
+						Days: fDays,
+						Reason: aComment[0] || "",
+						Notes: aComment.slice(1).join(NOTES_SEPARATOR),
+						FitNote: "N"
+					};
+				});
+			});
 		},
 
 		/**
@@ -74,7 +148,48 @@ sap.ui.define([
 		 * @returns {Promise<object>} the service's answer
 		 */
 		recordAbsence: function (oAbsence) {
-			return post("recordAbsence", oAbsence);
+			var aDays = [];
+			var oDay = SicknessPolicy.parseDay(oAbsence.StartDate);
+			var oEnd = SicknessPolicy.parseDay(oAbsence.EndDate);
+			while (oDay <= oEnd) {
+				if (oDay.getDay() !== 0 && oDay.getDay() !== 6) {
+					aDays.push(SicknessPolicy.isoDate(oDay));
+				}
+				oDay.setDate(oDay.getDate() + 1);
+			}
+			var sComment = (oAbsence.Reason + (oAbsence.Notes ? NOTES_SEPARATOR + oAbsence.Notes : "")).slice(0, COMMENT_LENGTH);
+			// One absence, however many days: its rows share a group, which is what the
+			// policy counts as one instance.
+			var sGroup = window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : undefined;
+
+			return sickTypeId().then(function (sSickId) {
+				return Hrx.callAction("createLeaveRequestForTeamCalendar", {
+					userLog: aDays.map(function (sDate) {
+						return {
+							EmpID_EmployeeID: oAbsence.EmpID,
+							IsPaid: true,
+							LeaveCategoryId_ID: sSickId,
+							NoOfDays: String(oAbsence.Days),
+							StartDate: sDate,
+							EndDate: sDate,
+							DayTime: "Full Day",
+							ApprovalRequired: false,
+							ApproverID_EmployeeID: signedInEmpId(),
+							RequesterComments: sComment,
+							LeaveGrpID: sGroup,
+							WFFlag: null
+						};
+					})
+				});
+			}).then(function (vResult) {
+				// The return-to-work checklist has nowhere to go yet; the absence itself is saved.
+				if (ENDPOINT) {
+					return post("openRtw", { EmpID: oAbsence.EmpID, RtwSteps: oAbsence.RtwSteps }).then(function () {
+						return vResult;
+					});
+				}
+				return vResult;
+			});
 		},
 
 		/**

@@ -911,22 +911,8 @@ sap.ui.define([
 		},
 
 		_request: function (sUrl, oInit) {
-			return fetch(sUrl, oInit).then(function (oResponse) {
-				return oResponse.text().then(function (sBody) {
-					var oJson = null;
-					try {
-						oJson = sBody ? JSON.parse(sBody) : null;
-					} catch (oParseError) {
-						oJson = null;
-					}
-
-					if (!oResponse.ok || !oJson || oJson.msgType !== "S") {
-						throw new Error((oJson && (oJson.msg || oJson.message)) || sBody || oResponse.statusText);
-					}
-
-					return oJson;
-				});
-			});
+			// Through Backend, which answers from the HRX service where it can.
+			return Backend.request(sUrl, oInit);
 		},
 
 		_openDialog: function (sCacheKey, sFragmentName) {

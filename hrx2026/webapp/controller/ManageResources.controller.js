@@ -750,23 +750,8 @@ sap.ui.define([
 		 * @returns {Promise<object>} the parsed response
 		 */
 		_request: function (sUrl, oInit) {
-			return fetch(sUrl, oInit).then(function (oResponse) {
-				return oResponse.text().then(function (sBody) {
-					var oJson = null;
-					try {
-						oJson = sBody ? JSON.parse(sBody) : null;
-					} catch (oParseError) {
-						oJson = null;
-					}
-
-					if (!oResponse.ok || !oJson || oJson.msgType !== "S") {
-						var sMessage = (oJson && (oJson.msg || oJson.message)) || sBody || oResponse.statusText;
-						throw new Error(sMessage);
-					}
-
-					return oJson;
-				});
-			});
+			// Through Backend, which answers from the HRX service where it can.
+			return Backend.request(sUrl, oInit);
 		},
 
 		_openDialog: function (sCacheKey, sFragmentName) {

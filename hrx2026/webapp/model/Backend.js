@@ -1,5 +1,16 @@
-sap.ui.define([], function () {
+sap.ui.define([
+	"./HrxLegacy"
+], function (HrxLegacy) {
 	"use strict";
+
+	/*
+	 * The app's backend is the HRX service (/hrx). With this on, every call the pages
+	 * make through request() and read() that HrxLegacy can answer is answered from
+	 * /hrx in the shape the page expects; the rest - client SLAs, licensed apps,
+	 * attachments, tasks - still goes to the original xsjs and OData services. Off,
+	 * the app is exactly as it was before the move.
+	 */
+	var USE_HRX = true;
 
 	// Root of the backend services - see xs-app.json (deployed) and ui5.yaml (local).
 	//
@@ -22,6 +33,11 @@ sap.ui.define([], function () {
 	 * @returns {Promise<object>} the parsed response
 	 */
 	function request(sUrl, oInit) {
+		var pHrx = USE_HRX ? HrxLegacy.handle(sUrl, oInit) : null;
+		if (pHrx) {
+			return pHrx;
+		}
+
 		return fetch(sUrl, oInit).then(function (oResponse) {
 			return oResponse.text().then(function (sBody) {
 				var oJson = null;
@@ -69,6 +85,8 @@ sap.ui.define([], function () {
 
 		SERVICE_ROOT: SERVICE_ROOT,
 
+		USE_HRX: USE_HRX,
+
 		TIMESHEET: SERVICE_ROOT + "/timesheet/timesheet.xsjs",
 		LEAVE: SERVICE_ROOT + "/hrx/leaveReqs.xsjs",
 		LEAVE_APPROVALS: SERVICE_ROOT + "/hrx/leaveApprovals.xsjs",
@@ -109,6 +127,11 @@ sap.ui.define([], function () {
 		 * @returns {Promise<object>} the response
 		 */
 		read: function (oModel, sPath, mParameters, bOptional) {
+			var pHrx = USE_HRX ? HrxLegacy.read(sPath, mParameters) : null;
+			if (pHrx) {
+				return pHrx;
+			}
+
 			var fnRead = function () {
 				if (bOptional && !this.hasEntitySet(oModel, sPath)) {
 					return Promise.resolve({ results: [] });

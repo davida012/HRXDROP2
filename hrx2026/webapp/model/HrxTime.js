@@ -135,13 +135,24 @@ sap.ui.define([
 		},
 
 		/**
-		 * Whether time on a project is billed to the client: the project's type says so.
+		 * Whether time on a project is billed to the client. The project type is a code:
+		 * FXD (fixed bid) and TNM (time and materials) are billed; INT (internal) and
+		 * FOC (free of charge) are not.
 		 * @param {object} oProject from {@link projects}
 		 * @returns {boolean} true for billable work
 		 */
 		isBillable: function (oProject) {
-			return /^billable$/i.test(String(oProject && oProject.ProjectType || "").trim());
+			return HrxTime.BILLABLE_TYPES.indexOf(String(oProject && oProject.ProjectType || "").trim().toUpperCase()) !== -1;
 		},
+
+		BILLABLE_TYPES: ["FXD", "TNM"],
+
+		PROJECT_TYPES: [
+			{ key: "FXD", text: "Fix Bid" },
+			{ key: "TNM", text: "Time and material" },
+			{ key: "INT", text: "BSX Internal" },
+			{ key: "FOC", text: "Free of Charge" }
+		],
 
 		/**
 		 * Hours booked against hours expected, per active person, over a range. Expected
