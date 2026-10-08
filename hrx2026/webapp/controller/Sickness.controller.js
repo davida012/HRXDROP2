@@ -212,7 +212,7 @@ sap.ui.define([
 					type: "Error"
 				});
 			} else {
-				oViewModel.setProperty("/alert", { text: this.getText("skNoTriggersAlert"), type: "Success" });
+				oViewModel.setProperty("/alert", { text: this.getText(iDismissed ? "skNoOpenTriggersAlert" : "skNoTriggersAlert"), type: "Success" });
 			}
 		},
 
@@ -222,7 +222,6 @@ sap.ui.define([
 			var sStart = Backend.dayKey(oRaw.StartDate);
 			var sEnd = Backend.dayKey(oRaw.EndDate) || sStart;
 			var fDays = parseFloat(oRaw.Days) || 0;
-			var bOpen = String(oRaw.Status || "").toUpperCase() === "OPEN";
 
 			return {
 				AbsenceID: oRaw.AbsenceID,
@@ -238,8 +237,6 @@ sap.ui.define([
 				FitNote: oRaw.FitNote === "Y" || oRaw.FitNote === true,
 				dateText: this._rangeText(sStart, sEnd),
 				durationText: this._daysText(fDays),
-				statusText: this.getText(bOpen ? "skStatusOpen" : "skStatusActioned"),
-				statusState: bOpen ? "Warning" : "Success",
 				dismissed: false,
 				dismissedTooltip: "",
 				dismissedNote: ""

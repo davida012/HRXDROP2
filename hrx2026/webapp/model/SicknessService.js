@@ -56,9 +56,8 @@ sap.ui.define([
 		 * @param {string} sFrom the first day, "yyyy-MM-dd"
 		 * @param {string} sTo the last day, "yyyy-MM-dd"
 		 * @returns {Promise<Array<object>>} absences: AbsenceID, EmpID, Name, Email,
-		 * StartDate and EndDate ("yyyy-MM-dd"), Days (working days), Reason, Notes,
-		 * FitNote ("Y"/"N") and Status ("OPEN" while return to work is outstanding,
-		 * "ACTIONED" once it is complete)
+		 * StartDate and EndDate ("yyyy-MM-dd"), Days (working days), Reason, Notes and
+		 * FitNote ("Y"/"N")
 		 */
 		getAbsences: function (sOrgId, sFrom, sTo) {
 			return get("absences", { OrgID: sOrgId, FromDate: sFrom, ToDate: sTo });
