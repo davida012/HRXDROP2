@@ -1,10 +1,11 @@
 sap.ui.define([
 	"sap/ui/core/mvc/Controller",
+	"sap/ui/core/Fragment",
 	"sap/ui/model/json/JSONModel",
 	"sap/m/MessageBox",
 	"../model/Backend",
 	"../model/formatter"
-], function (Controller, JSONModel, MessageBox, Backend, formatter) {
+], function (Controller, Fragment, JSONModel, MessageBox, Backend, formatter) {
 	"use strict";
 
 	// Root path of the backend services - see xs-app.json (deployed) and ui5.yaml (local).
@@ -21,8 +22,8 @@ sap.ui.define([
 		onInit: function () {
 			this.setModel(new JSONModel({
 				busy: true,
-				month: new Date(),
-				monthLabel: "",
+				weekStart: this._mondayOf(new Date()),
+				weekLabel: "",
 				periodLabel: "",
 				userType: "S",
 				title: this.getText("mtListTitle"),
@@ -37,10 +38,10 @@ sap.ui.define([
 
 		/**
 		 * The view is reused across navigations, so every entry reloads the report for
-		 * the current month rather than showing a stale one.
+		 * the current week rather than showing a stale one.
 		 */
 		_onRouteMatched: function () {
-			this.getModel("mtView").setProperty("/month", new Date());
+			this.getModel("mtView").setProperty("/weekStart", this._mondayOf(new Date()));
 			this._loadReport();
 		},
 
@@ -49,22 +50,22 @@ sap.ui.define([
 		/* =========================================================== */
 
 		/**
-		 * Loads the report for the selected month. The period ends today when the
-		 * selected month is the current one, so people are not marked as missing time
-		 * for days that have not happened yet.
+		 * Loads the report for the selected week, Monday to Sunday. The period ends
+		 * today when the selected week is the current one, so people are not marked as
+		 * missing time for days that have not happened yet.
 		 * @returns {Promise} resolved once the report is in the model
 		 */
 		_loadReport: function () {
 			var oViewModel = this.getModel("mtView");
-			var oMonth = formatter.toDate(oViewModel.getProperty("/month")) || new Date();
+			var oFirstDay = formatter.toDate(oViewModel.getProperty("/weekStart")) || this._mondayOf(new Date());
 			var oToday = new Date();
-
-			var oFirstDay = new Date(oMonth.getFullYear(), oMonth.getMonth(), 1);
-			var bCurrentMonth = oMonth.getFullYear() === oToday.getFullYear() && oMonth.getMonth() === oToday.getMonth();
-			var oLastDay = bCurrentMonth ? oToday : new Date(oMonth.getFullYear(), oMonth.getMonth() + 1, 0);
+			var oSunday = new Date(oFirstDay.getFullYear(), oFirstDay.getMonth(), oFirstDay.getDate() + 6);
+			var bCurrentWeek = oToday >= oFirstDay && oToday <= new Date(oSunday.getFullYear(), oSunday.getMonth(), oSunday.getDate(), 23, 59, 59);
+			var oLastDay = bCurrentWeek ? oToday : oSunday;
 
 			oViewModel.setProperty("/busy", true);
-			oViewModel.setProperty("/monthLabel", this._monthLabel(oMonth));
+			oViewModel.setProperty("/weekLabel", formatter.dateRange(oFirstDay, oSunday));
+			oViewModel.setProperty("/isCurrentWeek", bCurrentWeek);
 			oViewModel.setProperty("/periodLabel", this.getText("mtPeriod", [
 				formatter.date(oFirstDay), formatter.date(oLastDay)
 			]));
@@ -161,10 +162,6 @@ sap.ui.define([
 		/* events                                                      */
 		/* =========================================================== */
 
-		onMonthChange: function () {
-			this._loadReport();
-		},
-
 		onUserTypeChange: function () {
 			this._applyFilter();
 		},
@@ -173,16 +170,73 @@ sap.ui.define([
 			this._loadReport();
 		},
 
+		onPreviousWeek: function () {
+			this._stepWeek(-7);
+		},
+
+		onNextWeek: function () {
+			this._stepWeek(7);
+		},
+
+		onCurrentWeek: function () {
+			this.getModel("mtView").setProperty("/weekStart", this._mondayOf(new Date()));
+			this._loadReport();
+		},
+
+		_stepWeek: function (iDays) {
+			var oViewModel = this.getModel("mtView");
+			var oMonday = formatter.toDate(oViewModel.getProperty("/weekStart")) || this._mondayOf(new Date());
+
+			this._showWeek(new Date(oMonday.getFullYear(), oMonday.getMonth(), oMonday.getDate() + iDays));
+		},
+
 		/**
-		 * Steps the report one month back or forward.
+		 * Opens the same week picker as My Timesheet: any day picked stands for its week.
 		 * @param {sap.ui.base.Event} oEvent the button press event
 		 */
-		onStepMonth: function (oEvent) {
-			var iStep = oEvent.getSource().data("step") === "next" ? 1 : -1;
-			var oViewModel = this.getModel("mtView");
-			var oMonth = formatter.toDate(oViewModel.getProperty("/month")) || new Date();
+		onOpenWeekPicker: function (oEvent) {
+			var oButton = oEvent.getSource();
 
-			oViewModel.setProperty("/month", new Date(oMonth.getFullYear(), oMonth.getMonth() + iStep, 1));
+			if (!this._pWeekPicker) {
+				this._pWeekPicker = Fragment.load({
+					id: this.getView().getId(),
+					name: "bsx.hrx.hrx2026.fragment.WeekPickerPopover",
+					controller: this
+				}).then(function (oPopover) {
+					this.getView().addDependent(oPopover);
+					return oPopover;
+				}.bind(this));
+			}
+
+			this._pWeekPicker.then(function (oPopover) {
+				var oCalendar = this.byId("weekPickerCalendar");
+				oCalendar.removeAllSelectedDates();
+				oCalendar.focusDate(formatter.toDate(this.getModel("mtView").getProperty("/weekStart")));
+				oPopover.openBy(oButton);
+			}.bind(this));
+		},
+
+		onWeekPicked: function (oEvent) {
+			var aSelected = oEvent.getSource().getSelectedDates();
+			var oDate = aSelected.length && aSelected[0].getStartDate();
+			if (!oDate) {
+				return;
+			}
+
+			this._pWeekPicker.then(function (oPopover) {
+				oPopover.close();
+			});
+			this._showWeek(this._mondayOf(oDate));
+		},
+
+		/**
+		 * A week still to come has nothing to report but hours nobody could have
+		 * booked yet, so the report stops at the current week.
+		 * @param {Date} oMonday the Monday of the week to show
+		 */
+		_showWeek: function (oMonday) {
+			var oThisMonday = this._mondayOf(new Date());
+			this.getModel("mtView").setProperty("/weekStart", oMonday > oThisMonday ? oThisMonday : oMonday);
 			this._loadReport();
 		},
 
@@ -249,8 +303,14 @@ sap.ui.define([
 			return String(Math.round(iSeconds / 3600));
 		},
 
-		_monthLabel: function (oDate) {
-			return oDate.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+		/**
+		 * @param {Date} oDate any day
+		 * @returns {Date} the Monday of that day's week
+		 */
+		_mondayOf: function (oDate) {
+			var oMonday = new Date(oDate.getFullYear(), oDate.getMonth(), oDate.getDate());
+			oMonday.setDate(oMonday.getDate() - ((oMonday.getDay() + 6) % 7));
+			return oMonday;
 		},
 
 		_isoDate: function (oDate) {

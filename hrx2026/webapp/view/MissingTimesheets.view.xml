@@ -13,32 +13,31 @@
 		<subHeader>
 			<OverflowToolbar id="missingTimesheetsToolbar" class="hrxFilterBar">
 				<Button
-					id="missingPrevMonth"
+					id="missingPrevWeek"
 					icon="sap-icon://navigation-left-arrow"
 					type="Transparent"
-					tooltip="{i18n>mtPreviousMonth}"
-					press=".onStepMonth">
-					<customData>
-						<core:CustomData key="step" value="previous" />
-					</customData>
-				</Button>
-				<DatePicker
-					id="missingMonth"
-					dateValue="{mtView>/month}"
-					displayFormat="MMMM y"
-					valueFormat="yyyy-MM-dd"
-					change=".onMonthChange"
-					width="11rem" />
+					tooltip="{i18n>mtPreviousWeek}"
+					press=".onPreviousWeek" />
 				<Button
-					id="missingNextMonth"
+					id="missingWeekPicker"
+					type="Transparent"
+					text="{mtView>/weekLabel}"
+					tooltip="{i18n>tsPickWeek}"
+					press=".onOpenWeekPicker"
+					class="hrxWeekLabel" />
+				<Button
+					id="missingNextWeek"
 					icon="sap-icon://navigation-right-arrow"
 					type="Transparent"
-					tooltip="{i18n>mtNextMonth}"
-					press=".onStepMonth">
-					<customData>
-						<core:CustomData key="step" value="next" />
-					</customData>
-				</Button>
+					tooltip="{i18n>mtNextWeek}"
+					enabled="{= !${mtView>/isCurrentWeek} }"
+					press=".onNextWeek" />
+				<Button
+					id="missingThisWeek"
+					icon="sap-icon://rhombus-milestone"
+					type="Transparent"
+					tooltip="{i18n>mtThisWeek}"
+					press=".onCurrentWeek" />
 
 				<ToolbarSeparator />
 
