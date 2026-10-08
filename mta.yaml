@@ -16,6 +16,10 @@ modules:
     parameters:
       service-key:
         name: uaa_HRX2026-key
+  - name: bsx-hrx-xsuaa
+    parameters:
+      service-key:
+        name: bsx-hrx-xsuaa-key
   parameters:
     content:
       instance:
@@ -28,6 +32,16 @@ modules:
           Name: hrx2026_uaa_HRX2026
           ServiceInstanceName: HRX2026-xsuaa-service
           ServiceKeyName: uaa_HRX2026-key
+          sap.cloud.service: hrx2026
+        # The HRX CAP service (xs-app.json routes /hrx/* here). The signed-in user's
+        # token is exchanged with the service's own XSUAA instance, so CAP receives a
+        # token issued to it and knows who is calling (getUserDetail and friends read
+        # the user's email from it).
+        - Name: hrxservice
+          Authentication: OAuth2UserTokenExchange
+          URL: https://bsx-tdd-tdd-bsx-hrx-srv.cfapps.eu10.hana.ondemand.com
+          TokenServiceInstanceName: bsx-hrx-xsuaa
+          TokenServiceKeyName: bsx-hrx-xsuaa-key
           sap.cloud.service: hrx2026
         existing_destinations_policy: ignore
   build-parameters:
@@ -88,6 +102,12 @@ resources:
     service: xsuaa
     service-name: HRX2026-xsuaa-service
     service-plan: application
+# XSUAA instance of the HRX CAP service (bluestonex-labs/HRXService, MTA bsx-hrx),
+# deployed in the same space. Only used to exchange tokens for the hrxservice destination.
+- name: bsx-hrx-xsuaa
+  type: org.cloudfoundry.existing-service
+  parameters:
+    service-name: bsx-hrx-xsuaa
 parameters:
   deploy_mode: html5-repo
   enable-parallel-deployments: true

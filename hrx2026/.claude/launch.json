@@ -4,7 +4,7 @@
     {
       "name": "hrx",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "start-noflp"],
+      "runtimeArgs": ["run", "start-hrx"],
       "port": 8080
     }
   ]

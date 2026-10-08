@@ -3,7 +3,13 @@
   "sap.app": {
     "id": "bsx.hrx.hrx2026",
     "type": "application",
-    "i18n": "i18n/i18n.properties",
+    "i18n": {
+      "bundleUrl": "i18n/i18n.properties",
+      "supportedLocales": [
+        ""
+      ],
+      "fallbackLocale": ""
+    },
     "applicationVersion": {
       "version": "0.0.1"
     },
@@ -16,13 +22,13 @@
       "toolsId": "66332a0b-a8e4-42c2-8280-b88db765ceb1"
     },
     "dataSources": {
-      "mainService": {
-        "uri": "services/services.xsodata/",
+      "hrxService": {
+        "uri": "hrx/",
         "type": "OData",
         "settings": {
           "annotations": [],
-          "localUri": "localService/mainService/metadata.xml",
-          "odataVersion": "2.0"
+          "localUri": "localService/hrx/metadata.xml",
+          "odataVersion": "4.0"
         }
       }
     },
@@ -57,17 +63,12 @@
     }
   },
   "sap.ui5": {
-    "flexEnabled": true,
+    "flexEnabled": false,
     "dependencies": {
       "minUI5Version": "1.150.0",
       "libs": {
         "sap.m": {},
-        "sap.ui.core": {},
-        "sap.f": {},
-        "sap.tnt": {},
-        "sap.ui.layout": {},
-        "sap.ui.unified": {},
-        "sap.suite.ui.microchart": {}
+        "sap.ui.core": {}
       }
     },
     "contentDensities": {
@@ -78,146 +79,99 @@
       "i18n": {
         "type": "sap.ui.model.resource.ResourceModel",
         "settings": {
-          "bundleName": "bsx.hrx.hrx2026.i18n.i18n"
+          "bundleName": "bsx.hrx.hrx2026.i18n.i18n",
+          "supportedLocales": [
+            ""
+          ],
+          "fallbackLocale": ""
         }
-      },
-      "app": {
-        "type": "sap.ui.model.json.JSONModel",
-        "uri": "model/apps.json"
-      },
-      "": {
-        "dataSource": "mainService",
-        "preload": true,
-        "settings": {}
       }
     },
     "resources": {
       "css": [
         {
-          "uri": "css/style.css"
+          "uri": "css/hrx.css"
+        },
+        {
+          "uri": "css/hrx-ui5.css"
         }
       ]
     },
     "routing": {
       "config": {
         "routerClass": "sap.m.routing.Router",
-        "controlAggregation": "pages",
-        "controlId": "appNavContainer",
-        "transition": "slide",
-        "type": "View",
-        "viewType": "XML",
-        "path": "bsx.hrx.hrx2026.view",
-        "async": true,
-        "viewPath": "bsx.hrx.hrx2026.view"
+        "async": true
       },
       "routes": [
         {
           "name": "home",
-          "pattern": "",
-          "target": "home"
+          "pattern": ""
         },
         {
           "name": "timesheet",
-          "pattern": "timesheet",
-          "target": "timesheet"
+          "pattern": "timesheet"
         },
         {
           "name": "leave",
-          "pattern": "leave",
-          "target": "leave"
+          "pattern": "leave"
         },
         {
           "name": "teamcal",
-          "pattern": "teamcalendar",
-          "target": "teamcal"
+          "pattern": "teamcalendar"
+        },
+        {
+          "name": "mydocs",
+          "pattern": "policies"
         },
         {
           "name": "explorer",
-          "pattern": "explorer",
-          "target": "explorer"
+          "pattern": "explorer"
         },
         {
-          "name": "admin",
-          "pattern": "admin",
-          "target": "admin"
+          "name": "mybonus",
+          "pattern": "explorer/mybonus"
+        },
+        {
+          "name": "managebonus",
+          "pattern": "explorer/managebonus"
+        },
+        {
+          "name": "services",
+          "pattern": "explorer/services"
+        },
+        {
+          "name": "sickness",
+          "pattern": "sickness"
+        },
+        {
+          "name": "leaveadmin",
+          "pattern": "leavemanagement"
+        },
+        {
+          "name": "documents",
+          "pattern": "documents"
+        },
+        {
+          "name": "tsreport",
+          "pattern": "timesheetreporting"
+        },
+        {
+          "name": "utilisation",
+          "pattern": "utilisation"
         },
         {
           "name": "resources",
-          "pattern": "manageresources",
-          "target": "resources"
+          "pattern": "manageresources"
         },
         {
           "name": "clients",
-          "pattern": "manageclients",
-          "target": "clients"
+          "pattern": "manageclients"
         },
         {
           "name": "projects",
-          "pattern": "manageprojects",
-          "target": "projects"
-        },
-        {
-          "name": "missingtimesheets",
-          "pattern": "missingtimesheets",
-          "target": "missingtimesheets"
+          "pattern": "manageprojects"
         }
-      ],
-      "targets": {
-        "home": {
-          "viewName": "Home",
-          "viewLevel": 1,
-          "viewId": "home"
-        },
-        "timesheet": {
-          "viewName": "Timesheet",
-          "viewLevel": 1,
-          "viewId": "timesheet"
-        },
-        "leave": {
-          "viewName": "Leave",
-          "viewLevel": 1,
-          "viewId": "leave"
-        },
-        "teamcal": {
-          "viewName": "TeamCalendar",
-          "viewLevel": 1,
-          "viewId": "teamcal"
-        },
-        "explorer": {
-          "viewName": "AppExplorer",
-          "viewLevel": 1,
-          "viewId": "explorer"
-        },
-        "admin": {
-          "viewName": "Admin",
-          "viewLevel": 1,
-          "viewId": "admin"
-        },
-        "resources": {
-          "viewName": "ManageResources",
-          "viewLevel": 1,
-          "viewId": "resources"
-        },
-        "clients": {
-          "viewName": "ManageClients",
-          "viewLevel": 1,
-          "viewId": "clients"
-        },
-        "projects": {
-          "viewName": "ManageProjects",
-          "viewLevel": 1,
-          "viewId": "projects"
-        },
-        "missingtimesheets": {
-          "viewName": "MissingTimesheets",
-          "viewLevel": 1,
-          "viewId": "missingtimesheets"
-        },
-        "notFound": {
-          "viewName": "NotFound",
-          "viewId": "notFound"
-        }
-      }
+      ]
     },
     "rootView": {
       "viewName": "bsx.hrx.hrx2026.view.App",
