@@ -12,6 +12,21 @@ The app's backend is the **HRX service** (`bsx-hrx-srv`, OData V4, CAP), reached
 The deployed service only answers a signed-in user, so a local preview needs its own copy of the
 service running on port 4004 (`cds watch` in the CAP project).
 
+### Previewing with real data in Business Application Studio
+
+A BAS dev space runs inside the BTP subaccount, so its preview can reach both services through the
+subaccount's destinations instead of a local copy:
+
+1. Open a SAP Fiori dev space, clone the repository and check out `Joes-Branc`.
+2. `cd hrx2026 && npm install`
+3. `npm run start-bas` (uses `ui5-bas.yaml`: `/hrx` through `hrxservices`, `/services` through
+   `bsxorgappsservices`).
+
+For BAS to offer a destination, it needs these additional properties in the BTP cockpit:
+`WebIDEEnabled = true`, `WebIDEUsage = odata_gen`, `HTML5.DynamicDestination = true`. A BAS
+preview has no launchpad in front of it, so the app signs in as its development identity; add
+`?email=<your email>` to the preview url to use your own employee record.
+
 ### How the pages use it
 
 The pages were written against the older xsjs commands (`timesheet.xsjs?cmd=fetch`, ...) and the
