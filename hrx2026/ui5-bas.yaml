@@ -16,12 +16,13 @@ server:
             - /test-resources
           url: https://ui5.sap.com
         backend:
-          # Business Application Studio preview: both services through the
-          # subaccount's destinations, which BAS can reach and which sign the
-          # request in. Run with `npm run start-bas`.
+          # Business Application Studio preview. Run with `npm run start-bas`.
+          # The original services need no login, so they are called directly,
+          # as in a local preview.
           - path: /services
-            destination: bsxorgappsservices
             url: https://bsx-tdd-tdd-bsx-org-apps-services-v2.cfapps.eu10.hana.ondemand.com
+          # The HRX service answers only a signed-in caller, so it goes through
+          # the subaccount's hrxservices destination, which signs the request in.
           - path: /hrx
             destination: hrxservices
             url: https://bsx-tdd-tdd-bsx-hrx-srv.cfapps.eu10.hana.ondemand.com
