@@ -39,7 +39,7 @@
 /* ── ≤ 900px: drawer navigation ── */
 @media (max-width: 900px) {
 	.hrx .app,
-	.hrx .app.nav-collapsed { grid-template-columns: minmax(0, 1fr); height: 100dvh; min-height: 0; }
+	.hrx .app.nav-collapsed { grid-template-columns: minmax(0, 1fr); height: 100%; min-height: 0; }
 	.hrx .side {
 		position: fixed; top: 0; left: 0; bottom: 0; width: 280px; max-width: 86vw; z-index: 260;
 		transform: translateX(-102%); transition: transform .25s cubic-bezier(.3, .8, .3, 1);
