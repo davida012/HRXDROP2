@@ -24,8 +24,9 @@ subaccount's destinations instead of a local copy:
 
 For BAS to offer a destination, it needs these additional properties in the BTP cockpit:
 `WebIDEEnabled = true`, `WebIDEUsage = odata_gen`, `HTML5.DynamicDestination = true`. A BAS
-preview has no launchpad in front of it, so the app signs in as its development identity; add
-`?email=<your email>` to the preview url to use your own employee record.
+preview has no approuter in front of it, so the app uses its development identity unless told
+otherwise: change the preview url's `#app-preview` to `#app-preview?email=<your email>` to load your
+own employee record (or use the "View as (demo)" switch for full access).
 
 ### How the pages use it
 
