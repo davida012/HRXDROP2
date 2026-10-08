@@ -153,8 +153,9 @@ function createService(today, sUser) {
 	const { db, uuid } = build(today);
 	const iso = (d) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 	const now = () => new Date().toISOString();
+	// like the CAP handlers: the signed-in email must match a WorkEmail exactly, case included
 	const me = () => {
-		const u = db.Users.find((x) => (x.WorkEmail || "").toLowerCase() === sUser.toLowerCase());
+		const u = db.Users.find((x) => x.WorkEmail === sUser);
 		if (!u) { throw httpError(500, "Employee doesn't exist"); }
 		return u;
 	};
@@ -208,6 +209,8 @@ function createService(today, sUser) {
 
 	const fn = {
 		getUserDetail() {
+			// the real handler reads FetchUser[0].EmployeeID before checking the lookup found anyone
+			if (!db.Users.some((x) => x.WorkEmail === sUser)) { throw httpError(500, "Cannot read properties of undefined (reading 'EmployeeID')"); }
 			const u = me();
 			const m = user(u.Manager_EmployeeID);
 			return {
@@ -481,6 +484,8 @@ module.exports = function ({ log, options }) {
 
 	return async function (req, res, next) {
 		const u = new URL(req.originalUrl || req.url, "http://localhost");
+		// the approuter's user API, which tells the app who is signed in
+		if (u.pathname === "/user-api/currentUser") { send(res, 200, { email: sUser, name: sUser, scopes: [] }, { "Content-Type": "application/json" }); return; }
 		if (!u.pathname.startsWith(sMount)) { next(); return; }
 		const rest = decodeURIComponent(u.pathname.slice(sMount.length)).replace(/^\//, "");
 		const q = u.searchParams;

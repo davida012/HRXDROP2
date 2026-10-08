@@ -30,12 +30,7 @@ sap.ui.define(["./core", "./service", "./config"], function (hrx, svc, config) {
 			var u = await svc.getUserDetail();
 			data.me = u;
 			data.me.name = (u.FirstName + " " + u.LastName).trim();
-			var sEmail = "";
-			try {
-				// the approuter's user API carries the email the service resolved the user by
-				var r = await fetch(sap.ui.require.toUrl("bsx/hrx/hrx2026") + "/user-api/currentUser", { credentials: "include" });
-				if (r.ok) { sEmail = ((await r.json()).email || "").toLowerCase(); }
-			} catch (e) { /* local runs have no user API */ }
+			var sEmail = (await data.signedInEmail()).toLowerCase();
 			var people = await data.users();
 			var mine = people.find(function (p) { return p.EmployeeID === u.EmployeeID; });
 			data.me.WorkEmail = (mine && mine.WorkEmail) || sEmail;
@@ -45,6 +40,32 @@ sap.ui.define(["./core", "./service", "./config"], function (hrx, svc, config) {
 			return data.me;
 		},
 		isManager: function () { return data.role === "manager"; },
+
+		/** The email the approuter signed the user in with (empty when there is no approuter, as in local runs). */
+		signedInEmail: async function () {
+			try {
+				var r = await fetch(sap.ui.require.toUrl("bsx/hrx/hrx2026") + "/user-api/currentUser", { credentials: "include" });
+				if (r.ok) { return (await r.json()).email || ""; }
+			} catch (e) { /* local runs have no user API */ }
+			return "";
+		},
+
+		/**
+		 * Works out why getUserDetail could not resolve the signed-in user. The service
+		 * looks the user up by the exact email in their login, so a record that differs
+		 * only in upper/lower case is not found.
+		 * @returns {Promise<object>} { email, match } - match is the HRX user with that email in any case, if any
+		 */
+		diagnoseSignIn: async function () {
+			var sEmail = await data.signedInEmail(), match = null;
+			if (sEmail) {
+				try {
+					var a = await svc.Users.list({ $select: "EmployeeID,FirstName,LastName,WorkEmail,IsActive", $filter: "tolower(WorkEmail) eq " + svc.q(sEmail.toLowerCase()) });
+					match = a[0] || null;
+				} catch (e) { /* the diagnosis is best effort */ }
+			}
+			return { email: sEmail, match: match };
+		},
 
 		/* ── reference data ── */
 		users: function () {

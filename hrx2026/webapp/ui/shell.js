@@ -58,10 +58,35 @@ sap.ui.define([
 				hrx.on("time", function () { shell.refreshHealth(); shell.notifications.load(); });
 				oRouter.attachRouteMatched(function (e) { shell.show(e.getParameter("name")); });
 				oRouter.initialize();
-			}, function (e) {
-				el.querySelector(".scroll").innerHTML = "<div class=\"card\">" + hrx.empty("You could not be signed in to HRX", hrx.errText(e) + " — the HRX service needs to know you as an employee (getUserDetail). Ask an HRX administrator to add your work email.") + "</div>";
-				el.querySelector("#pgTitle").textContent = "Sign-in failed";
-			});
+			}, function (e) { return shell.signInFailed(el, e); });
+		},
+
+		/** Explains a failed sign-in: who the user is signed in as, and what HRX has (or lacks) for them. */
+		signInFailed: async function (el, e) {
+			el.querySelector("#pgTitle").textContent = "Sign-in failed";
+			el.querySelector("#sideName").textContent = "Not signed in";
+			el.querySelector("#healthStrip").innerHTML = "<span class=\"hpill crit\"><span class=\"hdot\"></span>Not signed in to HRX</span>";
+			var box = el.querySelector(".scroll");
+			box.innerHTML = "<div class=\"card\">" + hrx.loading("Checking your HRX record…") + "</div>";
+			var d = await data.diagnoseSignIn(), title, text;
+			if (e && e.status === 401) {
+				title = "Your session has expired";
+				text = "Reload the page to sign in again.";
+			} else if (!d.email) {
+				title = "You could not be signed in to HRX";
+				text = "The HRX service could not identify you from your login (getUserDetail: " + hrx.errText(e) + ").";
+			} else if (d.match && d.match.WorkEmail !== d.email) {
+				title = "Your HRX record's email differs in case";
+				text = "You are signed in as " + d.email + ". HRX has you as " + (d.match.FirstName + " " + d.match.LastName).trim() + " (" + d.match.EmployeeID + ") with the work email " + d.match.WorkEmail +
+					". The HRX service matches emails exactly, so ask an HRX administrator to change that work email to " + d.email + ".";
+			} else if (d.match) {
+				title = "You could not be signed in to HRX";
+				text = "You are signed in as " + d.email + ", which HRX knows as " + d.match.EmployeeID + ", but getUserDetail failed: " + hrx.errText(e);
+			} else {
+				title = "You are not set up in HRX yet";
+				text = "You are signed in as " + d.email + ", but the HRX service has no employee with that work email (getUserDetail: " + hrx.errText(e) + "). Ask an HRX administrator to add you as an employee with exactly that work email.";
+			}
+			box.innerHTML = "<div class=\"card\">" + hrx.empty(title, text) + "</div>";
 		},
 
 		frame: function () {
