@@ -195,10 +195,10 @@
 				<!-- every absence in the year, collapsed until asked for -->
 				<Panel expandable="true" expanded="{skView>/allExpanded}" class="hrxSkAll">
 					<headerToolbar>
-						<Toolbar style="Clear" height="auto">
-							<Title text="{i18n>skAllTitle}" level="H3" />
+						<Toolbar style="Clear" class="hrxSkAllHead">
+							<Title text="{i18n>skAllTitle}" level="H3" class="hrxSkAllTitle" />
 							<ToolbarSpacer />
-							<Text text="{skView>/allCount}" class="hrxResourceMeta" />
+							<Text text="{skView>/allCount}" class="hrxSkHint" />
 						</Toolbar>
 					</headerToolbar>
 					<Table

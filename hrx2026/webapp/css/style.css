@@ -2142,7 +2142,41 @@ body.hrxApp {
 	margin-top: 22px;
 }
 
-.hrxApp .hrxSkAll .sapMTB .hrxResourceMeta,
 .hrxApp .hrxSkCount {
+	white-space: nowrap;
+}
+
+/* The prototype's collapsible card head: 14px/20px padding, a display-face
+   uppercase title and a quiet hint on the right. The toolbar keeps its own
+   height so the title is never clipped. */
+.hrxApp .hrxSkAll > .sapMPanelWrappingDivTb {
+	padding: 6px 12px;
+	border-bottom: none;
+}
+
+.hrxApp .hrxSkAll.sapMPanelExpanded > .sapMPanelWrappingDivTb,
+.hrxApp .hrxSkAll > .sapMPanelWrappingDivTbExpanded {
+	border-bottom: 1px solid var(--line-soft);
+}
+
+.hrxApp .hrxSkAllHead.sapMTB {
+	height: auto;
+	min-height: 2.75rem;
+	padding-left: 4px;
+}
+
+.hrxApp .hrxSkAllTitle.sapMTitle {
+	height: auto;
+	font-family: var(--disp);
+	font-size: 14px;
+	font-weight: 800;
+	line-height: 1.4;
+	text-transform: uppercase;
+	color: var(--ink);
+}
+
+.hrxApp .hrxSkHint {
+	font-size: 11.5px;
+	color: var(--txt-3);
 	white-space: nowrap;
 }

@@ -75,4 +75,20 @@ sap.ui.define([
 		aAbsences.push(absence("A", "2026-10-01"));
 		assert.strictEqual(SicknessPolicy.triggers(aAbsences, oYear, aReviews)[0].status, "OPEN");
 	});
+
+	QUnit.test("a fourth absence keeps the whole year's count rather than starting again", function (assert) {
+		var aAbsences = [absence("A", "2026-04-10", 1), absence("A", "2026-06-01", 2), absence("A", "2026-09-01", 1),
+			absence("A", "2027-01-12", 3)];
+
+		["DISMISSED", "ACTIONED"].forEach(function (sStatus) {
+			var oTrigger = SicknessPolicy.triggers(aAbsences, oYear, [{ EmpID: "A", Status: sStatus, InstanceCount: 3 }])[0];
+			assert.strictEqual(oTrigger.status, "OPEN", "reopened after " + sStatus);
+			assert.strictEqual(oTrigger.instances, 4, "all four instances counted");
+			assert.strictEqual(oTrigger.absences.length, 4, "all four in the history");
+			assert.strictEqual(oTrigger.days, 7);
+		});
+
+		var oDismissedAgain = SicknessPolicy.triggers(aAbsences, oYear, [{ EmpID: "A", Status: "DISMISSED", InstanceCount: 4 }])[0];
+		assert.strictEqual(oDismissedAgain.status, "DISMISSED", "stays closed once the fourth is dismissed");
+	});
 });
