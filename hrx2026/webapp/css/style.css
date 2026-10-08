@@ -1996,12 +1996,20 @@ body.hrxApp {
 	color: var(--txt-3);
 }
 
+/* An inverted ObjectStatus draws its own pill on the inner wrapper, so the
+   outer element must not take the app-wide status background as well - that
+   showed as a tinted halo round the pill. */
 .hrxApp .hrxSkPill.sapMObjStatus {
-	border-radius: 999px;
-	padding: 0 4px;
+	background: none;
+	padding: 0;
 	font-size: 12px;
 	font-weight: 600;
 	flex-shrink: 0;
+}
+
+.hrxApp .hrxSkPill .sapMObjStatusWrapper {
+	border-radius: 999px;
+	padding: 0 4px;
 }
 
 .hrxApp .hrxSkCardBody {
@@ -2141,6 +2149,14 @@ body.hrxApp {
 
 .hrxApp .hrxSkStep[data-done="yes"] .hrxSkStepText {
 	color: var(--txt-2);
+}
+
+.hrxApp .hrxSkDismissedNote {
+	font-size: 11.5px;
+}
+
+.hrxApp .hrxSkPill .sapMObjStatusText {
+	white-space: nowrap;
 }
 
 .hrxApp .hrxSkAll.sapMPanel {

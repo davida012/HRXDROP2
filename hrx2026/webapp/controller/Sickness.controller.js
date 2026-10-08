@@ -173,14 +173,33 @@ sap.ui.define([
 				return b.StartDate.localeCompare(a.StartDate);
 			});
 
-			var aTriggers = SicknessPolicy.triggers(aAbsences, oYear, aReviews).map(this._toTrigger, this);
+			var aAllTriggers = SicknessPolicy.triggers(aAbsences, oYear, aReviews).map(this._toTrigger, this);
 			var aRtw = (aRawRtw || []).map(this._toRtw, this);
-			var iOpen = aTriggers.filter(function (oTrigger) {
+
+			// Only open triggers stay in the list. A dismissed one moves to the All
+			// sickness table, where the absences it covered carry the dismissal and
+			// its reason - and a further absence brings it back as open.
+			var aTriggers = aAllTriggers.filter(function (oTrigger) {
 				return oTrigger.status === "OPEN";
-			}).length;
+			});
+			var iOpen = aTriggers.length;
+			var iDismissed = aAllTriggers.length - iOpen;
+
+			aAllTriggers.forEach(function (oTrigger) {
+				if (oTrigger.status !== "DISMISSED") {
+					return;
+				}
+				oTrigger.absences.forEach(function (oAbsence, iIndex) {
+					oAbsence.dismissed = true;
+					oAbsence.dismissedTooltip = oTrigger.noteText;
+					// The reason is written out once, on the newest absence it covered.
+					oAbsence.dismissedNote = iIndex === 0 ? oTrigger.noteText : this.getText("skTriggerDismissed");
+				}, this);
+			}, this);
 
 			oModel.setProperty("/absences", aAbsences);
 			oModel.setProperty("/triggers", aTriggers);
+			oViewModel.setProperty("/noTriggersText", this.getText(iDismissed ? "skNoOpenTriggers" : "skNoTriggers"));
 			oModel.setProperty("/rtw", aRtw);
 
 			oViewModel.setProperty("/allCount", this.getText(aAbsences.length === 1 ? "skAbsence" : "skAbsences", [aAbsences.length]));
@@ -220,7 +239,10 @@ sap.ui.define([
 				dateText: this._rangeText(sStart, sEnd),
 				durationText: this._daysText(fDays),
 				statusText: this.getText(bOpen ? "skStatusOpen" : "skStatusActioned"),
-				statusState: bOpen ? "Warning" : "Success"
+				statusState: bOpen ? "Warning" : "Success",
+				dismissed: false,
+				dismissedTooltip: "",
+				dismissedNote: ""
 			};
 		},
 

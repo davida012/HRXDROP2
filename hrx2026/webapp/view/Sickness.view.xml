@@ -65,7 +65,7 @@
 				<Title text="{i18n>skTriggersTitle}" level="H2" class="hrxSectionTitle hrxSkSectionTitle" />
 
 				<VBox class="hrxSkCard hrxSkEmpty" visible="{= ${sk>/triggers}.length === 0 }">
-					<Text text="{i18n>skNoTriggers}" />
+					<Text text="{skView>/noTriggersText}" textAlign="Center" />
 				</VBox>
 
 				<VBox items="{path: 'sk>/triggers', templateShareable: false}" class="hrxSkStack">
@@ -136,10 +136,6 @@
 									text="{sk>dismissText}"
 									press=".onOpenDismiss" />
 							</HBox>
-							<Text
-								text="{sk>noteText}"
-								visible="{= ${sk>status} !== 'OPEN' }"
-								class="hrxSkNote" />
 						</VBox>
 					</VBox>
 				</VBox>
@@ -220,9 +216,9 @@
 						growingThreshold="50"
 						class="hrxSkTable">
 						<columns>
-							<Column><Text text="{i18n>skColEmployee}" /></Column>
+							<Column width="28%"><Text text="{i18n>skColEmployee}" /></Column>
 							<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>skColDate}" /></Column>
-							<Column hAlign="Center" minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>skColDuration}" /></Column>
+							<Column width="6rem" hAlign="Center" minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>skColDuration}" /></Column>
 							<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>skColReason}" /></Column>
 							<Column hAlign="End"><Text text="{i18n>skColStatus}" /></Column>
 						</columns>
@@ -231,7 +227,15 @@
 								<cells>
 									<HBox alignItems="Center">
 										<f:Avatar initials="{sk>initials}" displaySize="XS" backgroundColor="Accent6" class="sapUiTinyMarginEnd" />
-										<Text text="{sk>Name}" class="hrxResourceName" />
+										<VBox>
+											<Text text="{sk>Name}" class="hrxResourceName" />
+											<Text
+												text="{sk>dismissedNote}"
+												tooltip="{sk>dismissedTooltip}"
+												visible="{sk>dismissed}"
+												maxLines="2"
+												class="hrxResourceMeta hrxSkDismissedNote" />
+										</VBox>
 									</HBox>
 									<Text text="{sk>dateText}" />
 									<Text text="{sk>durationText}" />
