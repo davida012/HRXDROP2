@@ -14,7 +14,7 @@ The HRX Drop 2 design, built as a UI5 application on the HRX CAP service.
 - `webapp/css/hrx-mobile.css` — tablets and phones: tiles go two-up below 1200px, cards stack below 1000px, the side rail becomes a drawer opened from the top bar below 900px, and below 640px forms go single-column while wide tables and the team calendar scroll sideways (names pinned).
 - `docs/screenshots/{desktop,tablet,phone}` — every page at 1440×900, 768×1024 (iPad) and 390×844 (iPhone 14).
 - `webapp/localService/hrx/metadata.xml` — the HRX service's metadata.
-- `mock/` — a local stand-in for the HRX service (dev only, not deployed).
+- `mock/` — a local stand-in for the HRX service (dev only, not deployed). It is a small local npm package (`hrx-mock-service`, a devDependency) with its own `ui5.yaml`, so the app's `ui5*.yaml` files stay single YAML documents, which SAP Fiori tools (Preview Application) requires.
 
 ## The HRX service
 

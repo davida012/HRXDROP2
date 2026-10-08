@@ -39,11 +39,3 @@ builder:
     excludes:
       - /test/**
       - /localService/**
----
-specVersion: "4.0"
-kind: extension
-type: server-middleware
-metadata:
-  name: hrx-service
-middleware:
-  path: mock/hrx-mock-middleware.js
