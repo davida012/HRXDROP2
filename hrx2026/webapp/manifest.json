@@ -94,6 +94,9 @@
         },
         {
           "uri": "css/hrx-ui5.css"
+        },
+        {
+          "uri": "css/hrx-mobile.css"
         }
       ]
     },

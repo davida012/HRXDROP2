@@ -87,7 +87,8 @@ sap.ui.define([
 				"<button class=\"side-bell\" id=\"bellBtn\" type=\"button\" title=\"Notifications\" aria-label=\"Notifications\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9\"/><path d=\"M10.3 21a1.94 1.94 0 0 0 3.4 0\"/></svg><span class=\"bell-badge\" id=\"bellBadge\" hidden>0</span></button></div>" +
 				(config.TEST_SHOW_ALL ? "<div class=\"role-demo\" id=\"roleDemo\"><span>View as (testing)</span><select id=\"roleToggle\"><option value=\"employee\">Employee</option><option value=\"manager\" selected>Manager</option></select></div>" : "") +
 				"</aside>" +
-				"<main class=\"main\"><div class=\"topbar\"><div class=\"crumb\"><div class=\"eyebrow\">HR Suite</div><div class=\"pg-title\" id=\"pgTitle\">Home</div></div><div class=\"topbar-right\" id=\"topbarRight\"></div></div>" +
+				"<div class=\"nav-scrim\" id=\"navScrim\"></div>" +
+				"<main class=\"main\"><div class=\"topbar\"><button class=\"nav-burger\" id=\"navBurger\" type=\"button\" title=\"Menu\" aria-label=\"Open navigation\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M3 6h18M3 12h18M3 18h18\"/></svg></button><div class=\"crumb\"><div class=\"eyebrow\">HR Suite</div><div class=\"pg-title\" id=\"pgTitle\">Home</div></div><div class=\"topbar-right\" id=\"topbarRight\"></div></div>" +
 				"<div class=\"health-strip\" id=\"healthStrip\"><span class=\"hpill ok\"><span class=\"hdot\"></span>Loading…</span></div>" +
 				"<div class=\"scroll\" id=\"scroll\">" + views + "</div></main></div>" +
 				"<div class=\"modal-ov\"><div class=\"modal\" role=\"dialog\" aria-modal=\"true\"><div class=\"modal-head\"><div class=\"modal-title\"></div></div><div class=\"modal-body\"></div><div class=\"modal-foot\"></div></div></div>" +
@@ -98,9 +99,16 @@ sap.ui.define([
 		wire: function () {
 			var root = hrx.root, app = root.querySelector("#app");
 			root.querySelector(".sidenav").addEventListener("click", function (e) {
-				var b = e.target.closest("button[data-view]"); if (b) { shell.go(b.dataset.view); }
+				var b = e.target.closest("button[data-view]"); if (b) { shell.closeDrawer(); shell.go(b.dataset.view); }
 			});
+			// phones and tablets: the side rail is a drawer, opened from the top bar
+			root.querySelector("#navBurger").addEventListener("click", function () { app.classList.add("nav-open"); });
+			root.querySelector("#navScrim").addEventListener("click", shell.closeDrawer);
+			document.addEventListener("keydown", function (e) { if (e.key === "Escape") { shell.closeDrawer(); } });
+			var fit = function () { if (shell.isNarrow()) { app.classList.remove("nav-collapsed"); } else { shell.closeDrawer(); } };
+			window.addEventListener("resize", fit); fit();
 			root.querySelector("#navToggle").addEventListener("click", function () {
+				if (shell.isNarrow()) { shell.closeDrawer(); return; }
 				app.classList.toggle("nav-collapsed");
 				try { sessionStorage.setItem("hrxNavCollapsed", app.classList.contains("nav-collapsed") ? "1" : "0"); } catch (e) { /* no storage */ }
 			});
@@ -119,6 +127,10 @@ sap.ui.define([
 			root.addEventListener("click", function (e) { var g = e.target.closest("[data-go]"); if (g && !g.closest(".notif-pop")) { shell.go(g.dataset.go); } });
 			shell.notifications.wire();
 		},
+
+		NARROW: "(max-width: 900px)",
+		isNarrow: function () { return window.matchMedia(shell.NARROW).matches; },
+		closeDrawer: function () { var a = hrx.root && hrx.root.querySelector("#app"); if (a) { a.classList.remove("nav-open"); } },
 
 		go: function (k) {
 			var n = ALL.find(function (x) { return x.k === k; });
@@ -241,6 +253,7 @@ sap.ui.define([
 				var root = hrx.root, list = root.querySelector("#notifList"), badge = root.querySelector("#bellBadge");
 				var unread = shell.notifications.items.filter(function (i) { return i.unread; });
 				badge.textContent = unread.length; badge.hidden = unread.length === 0;
+				root.querySelector("#navBurger").classList.toggle("has-unread", unread.length > 0);
 				root.querySelector("#notifCount").textContent = unread.length ? unread.length + " unread" : "";
 				root.querySelector("#notifMarkAll").style.display = unread.length ? "" : "none";
 				if (!unread.length) {
@@ -251,9 +264,12 @@ sap.ui.define([
 			},
 			wire: function () {
 				var root = hrx.root, bell = root.querySelector("#bellBtn"), pop = root.querySelector("#notifPop");
-				var place = function () { pop.style.left = (root.querySelector(".side").getBoundingClientRect().right + 10) + "px"; pop.style.bottom = Math.max(12, window.innerHeight - bell.getBoundingClientRect().bottom - 8) + "px"; };
+				var place = function () {
+					if (shell.isNarrow()) { pop.style.left = ""; pop.style.bottom = ""; return; }   // CSS docks it to the bottom of the screen
+					pop.style.left = (root.querySelector(".side").getBoundingClientRect().right + 10) + "px"; pop.style.bottom = Math.max(12, window.innerHeight - bell.getBoundingClientRect().bottom - 8) + "px";
+				};
 				var close = function () { pop.classList.remove("open"); bell.classList.remove("open"); };
-				bell.addEventListener("click", function (e) { e.stopPropagation(); if (pop.classList.contains("open")) { close(); } else { shell.notifications.render(); place(); pop.classList.add("open"); bell.classList.add("open"); } });
+				bell.addEventListener("click", function (e) { e.stopPropagation(); if (pop.classList.contains("open")) { close(); } else { shell.notifications.render(); place(); shell.closeDrawer(); pop.classList.add("open"); bell.classList.add("open"); } });
 				root.querySelector("#notifClose").addEventListener("click", close);
 				root.querySelector("#notifMarkAll").addEventListener("click", function () { shell.notifications.markRead(shell.notifications.items.map(function (i) { return i.id; })); shell.notifications.items.forEach(function (i) { i.unread = false; }); shell.notifications.render(); });
 				root.querySelector("#notifList").addEventListener("click", function (e) {
