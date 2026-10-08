@@ -178,11 +178,6 @@ sap.ui.define([
 			this._stepWeek(7);
 		},
 
-		onCurrentWeek: function () {
-			this.getModel("mtView").setProperty("/weekStart", this._mondayOf(new Date()));
-			this._loadReport();
-		},
-
 		_stepWeek: function (iDays) {
 			var oViewModel = this.getModel("mtView");
 			var oMonday = formatter.toDate(oViewModel.getProperty("/weekStart")) || this._mondayOf(new Date());

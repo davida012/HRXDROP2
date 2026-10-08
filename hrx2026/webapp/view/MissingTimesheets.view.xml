@@ -11,7 +11,7 @@
 	<Page id="missingTimesheetsPage" showHeader="false" title="{i18n>mtTitle}" showNavButton="false" class="hrxPageContent">
 
 		<subHeader>
-			<OverflowToolbar id="missingTimesheetsToolbar" class="hrxFilterBar">
+			<OverflowToolbar id="missingTimesheetsToolbar" class="hrxFilterBar sapUiSmallMarginBottom">
 				<Button
 					id="missingPrevWeek"
 					icon="sap-icon://navigation-left-arrow"
@@ -32,12 +32,6 @@
 					tooltip="{i18n>mtNextWeek}"
 					enabled="{= !${mtView>/isCurrentWeek} }"
 					press=".onNextWeek" />
-				<Button
-					id="missingThisWeek"
-					icon="sap-icon://rhombus-milestone"
-					type="Transparent"
-					tooltip="{i18n>mtThisWeek}"
-					press=".onCurrentWeek" />
 
 				<ToolbarSeparator />
 
