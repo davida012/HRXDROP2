@@ -87,7 +87,6 @@
 								inverted="true"
 								visible="{= ${sk>emailed} &amp;&amp; ${sk>status} === 'OPEN' }"
 								class="hrxSkPill" />
-							<ObjectStatus text="{sk>statusText}" state="{sk>statusState}" inverted="true" class="hrxSkPill" />
 						</HBox>
 
 						<VBox class="hrxSkCardBody">

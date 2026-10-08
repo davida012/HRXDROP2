@@ -262,8 +262,6 @@ sap.ui.define([
 				initials: formatter.nameInitials(sName),
 				summary: this.getText("skSummary", [oTrigger.instances, this._daysText(oTrigger.days)]),
 				historyCount: this.getText(oTrigger.instances === 1 ? "skAbsence" : "skAbsences", [oTrigger.instances]),
-				statusText: this.getText(bDismissed ? "skStatusDismissed" : "skStatusOpen"),
-				statusState: bDismissed ? "None" : "Error",
 				dismissText: this.getText("skDismissButton", [sName.split(/\s+/)[0]]),
 				noteText: bDismissed ? this.getText("skDismissedNote", [oTrigger.note]) : "",
 				emailedText: sEmailedOn ?
