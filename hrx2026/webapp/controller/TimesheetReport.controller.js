@@ -414,7 +414,9 @@ sap.ui.define([
 			var fTop = oOverview.top.length ? oOverview.top[0].value : 1;
 
 			var aSlices = oOverview.slices.map(function (oSlice, iIndex) {
-				var sColor = COLORS[iIndex % COLORS.length];
+				// A customer's projects start from the customer's own colour, so the slice
+				// clicked keeps its colour as the chart opens up.
+				var sColor = COLORS[((sDrill ? this._iDrillColour || 0 : 0) + iIndex) % COLORS.length];
 				return Object.assign(oSlice, {
 					color: sColor,
 					valueText: this._num(oSlice.value),
@@ -771,6 +773,7 @@ sap.ui.define([
 			if (oViewModel.getProperty("/drill") || !oSlice) {
 				return;
 			}
+			this._iDrillColour = iIndex;
 			oViewModel.setProperty("/drill", oSlice.key);
 			this._renderDays();
 		},
