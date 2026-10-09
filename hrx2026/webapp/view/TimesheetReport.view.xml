@@ -256,7 +256,7 @@
 									</VBox>
 								</VBox>
 
-								<VBox class="hrxSkCard hrxTrCard">
+								<VBox id="trPieCard" class="hrxSkCard hrxTrCard">
 									<layoutData>
 										<layout:GridData span="XL5 L5 M12 S12" />
 									</layoutData>
@@ -269,10 +269,13 @@
 									</HBox>
 									<VBox class="hrxTrCardBody">
 										<Text text="{i18n>trNothingBooked}" visible="{= ${tr>/days/slices}.length === 0 }" class="hrxTrEmpty" />
+										<!-- preferDOM off: the chart is redrawn whole each time its data
+										     changes, rather than swapped in place - which left the old
+										     chart on screen beside the new one. -->
 										<core:HTML
 											content="{tr>/days/pieHtml}"
-											visible="{= ${tr>/days/slices}.length > 0 }"
-											afterRendering=".onPieRendered" />
+											preferDOM="false"
+											visible="{= ${tr>/days/slices}.length > 0 }" />
 										<List
 											items="{path: 'tr>/days/slices', templateShareable: false}"
 											showSeparators="None"

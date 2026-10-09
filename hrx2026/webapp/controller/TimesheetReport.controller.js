@@ -87,6 +87,18 @@ sap.ui.define([
 				}
 			}, this);
 
+			// A click on a pie wedge drills into it, as a click on its name does. Listened
+			// for on the card rather than the chart: the chart's markup is swapped out
+			// whenever its data changes, and a listener on it went with it.
+			this.byId("trPieCard").addEventDelegate({
+				onclick: function (oEvent) {
+					var oWedge = oEvent.target.closest && oEvent.target.closest(".hrxTrPie [data-i]");
+					if (oWedge) {
+						this._drill(parseInt(oWedge.getAttribute("data-i"), 10));
+					}
+				}
+			}, this);
+
 			this.getOwnerComponent().getRouter().getRoute("timesheetreport")
 				.attachPatternMatched(this._onRouteMatched, this);
 		},
@@ -746,25 +758,6 @@ sap.ui.define([
 				this._mOpenAssign[oRow.key] = bOpen;
 			}, this);
 			this._renderAssign();
-		},
-
-		/**
-		 * Wires the pie's wedges to drill into a customer. The chart is plain SVG, so
-		 * its clicks are picked up here once each time it is drawn.
-		 * @param {sap.ui.base.Event} oEvent the HTML control's afterRendering event
-		 */
-		onPieRendered: function (oEvent) {
-			var oDom = oEvent.getSource().getDomRef();
-			if (!oDom || oDom.__hrxBound) {
-				return;
-			}
-			oDom.__hrxBound = true;
-			oDom.addEventListener("click", function (oClick) {
-				var oWedge = oClick.target.closest("[data-i]");
-				if (oWedge) {
-					this._drill(parseInt(oWedge.getAttribute("data-i"), 10));
-				}
-			}.bind(this));
 		},
 
 		onSliceSelect: function (oEvent) {
