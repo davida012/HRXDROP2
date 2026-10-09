@@ -77,7 +77,16 @@
 						<Button text="{i18n>trLastYear}" press=".onLastYear" />
 						<Button text="{i18n>trClear}" type="Transparent" press=".onClear" />
 					</HBox>
-					<Text text="{trView>/stamp}" class="hrxResourceMeta hrxTrStamp" />
+					<!-- Team utilisation's own filter, at the foot of the card while that tab is open. -->
+					<HBox alignItems="Center" visible="{= ${trView>/tab} === 'util' }" class="hrxTrShow">
+						<Label text="{i18n>trShow}" labelFor="trUtilShow" class="sapUiTinyMarginEnd" />
+						<Select id="trUtilShow" selectedKey="{trView>/util/show}" change=".onUtilShow" width="12rem">
+							<core:Item key="all" text="{i18n>trShowEveryone}" />
+							<core:Item key="bill" text="{i18n>trShowBillable}" />
+							<core:Item key="u50" text="{i18n>trShowUnder50}" />
+							<core:Item key="u80" text="{i18n>trShowUnder80}" />
+						</Select>
+					</HBox>
 				</HBox>
 				</VBox>
 
@@ -417,16 +426,6 @@
 
 						<!-- team utilisation -->
 						<IconTabFilter key="util" text="{i18n>trTabUtil}">
-							<HBox alignItems="Center" justifyContent="End" class="sapUiSmallMarginBottom">
-								<Label text="{i18n>trShow}" labelFor="trUtilShow" class="sapUiTinyMarginEnd" />
-								<Select id="trUtilShow" selectedKey="{trView>/util/show}" change=".onUtilShow" width="12rem">
-									<core:Item key="all" text="{i18n>trShowEveryone}" />
-									<core:Item key="bill" text="{i18n>trShowBillable}" />
-									<core:Item key="u50" text="{i18n>trShowUnder50}" />
-									<core:Item key="u80" text="{i18n>trShowUnder80}" />
-								</Select>
-							</HBox>
-
 							<layout:Grid defaultSpan="XL3 L3 M6 S12" hSpacing="1" vSpacing="1" class="hrxCardRow sapUiSmallMarginBottom">
 								<VBox class="hrxKpi">
 									<customData><core:CustomData key="state" value="{tr>/util/teamState}" writeToDom="true" /></customData>

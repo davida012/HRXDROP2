@@ -48,7 +48,6 @@ sap.ui.define([
 				loading: false,
 				weekLoading: false,
 				progressText: "",
-				stamp: "",
 				failedText: "",
 				filters: { ClientKey: ALL, ProjectKey: ALL, EmpID: ALL },
 				period: {},
@@ -214,7 +213,7 @@ sap.ui.define([
 						return oPerson.Name;
 					}).join(", ")
 				]) : "");
-				oViewModel.setProperty("/stamp", this.getText("trStamp", [this._clock(new Date())]));
+				this._setStamp(this.getText("trStamp", [this._clock(new Date())]));
 				this._render();
 			}.bind(this)).catch(function (oError) {
 				if (iLoad === this._iLoad) {
@@ -910,6 +909,18 @@ sap.ui.define([
 		_barHtml: function (fPct, sState) {
 			return "<div class=\"hrxTrTrack hrxTrState" + sState + "\"><div class=\"hrxTrFill\" style=\"width:" +
 				Math.max(0, Math.min(100, fPct)).toFixed(1) + "%\"></div></div>";
+		},
+
+		/**
+		 * Shows when the data was read next to the header's reload button. Kept per page
+		 * by the shell, so it is still there when the user comes back.
+		 * @param {string} sStamp e.g. "Last refreshed 09:41"
+		 */
+		_setStamp: function (sStamp) {
+			var oAppModel = this.getOwnerComponent().getModel("app");
+			// The whole object: a JSONModel does not create a missing parent on set.
+			oAppModel.setProperty("/stamps", Object.assign({}, oAppModel.getProperty("/stamps"), { timesheetreport: sStamp }));
+			oAppModel.setProperty("/page/stamp", sStamp);
 		},
 
 		_remindSubject: function () {

@@ -131,7 +131,11 @@ sap.ui.define([
 			// deep link showing whatever title the catalogue was seeded with.
 			var oModel = this.getOwnerComponent().getModel("app");
 			oModel.dataLoaded().then(function () {
-				oModel.setProperty("/page", { title: this.getText(sKey) });
+				oModel.setProperty("/page", {
+					title: this.getText(sKey),
+					// A page that reported when its data was read keeps showing it on return.
+					stamp: oModel.getProperty("/stamps/" + sRoute) || ""
+				});
 				this._refreshStripVisibility();
 			}.bind(this));
 

@@ -2545,10 +2545,6 @@ body.hrxApp {
 	gap: 6px;
 }
 
-.hrxApp .hrxTrStamp {
-	white-space: nowrap;
-}
-
 .hrxApp .hrxTrLegendRow > .sapMFlexItem:nth-child(2),
 .hrxApp .hrxTrTopLabel > .sapMFlexItem:first-child {
 	flex: 1 1 auto !important;
@@ -2644,4 +2640,15 @@ body.hrxApp {
 	letter-spacing: .14em;
 	fill: var(--txt-3);
 	pointer-events: none;
+}
+
+/* When the page's data was read, just left of the header's reload button. */
+.hrxApp .hrxCrumbActions {
+	gap: 4px;
+}
+
+.hrxApp .hrxCrumbStamp {
+	font-size: 12px;
+	color: var(--txt-3);
+	white-space: nowrap;
 }

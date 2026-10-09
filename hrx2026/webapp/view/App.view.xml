@@ -48,18 +48,26 @@
 						     that pushes it there on the flex item wrapper. (A ToolbarSpacer did
 						     nothing here: it only grows inside a toolbar, not an HBox, which is
 						     how the button ended up jammed against the page title.) -->
-						<Button
-							id="pageRefresh"
-							icon="sap-icon://refresh"
-							type="Transparent"
-							tooltip="{i18n>appRefreshTooltip}"
-							visible="{app>/page/showRefresh}"
-							press="onRefreshPage"
-							class="hrxCrumbAction">
+						<!-- When the page's data was last read, where a page reports it, sits
+						     just left of the reload button it refers to. -->
+						<HBox alignItems="Center" class="hrxCrumbActions">
 							<layoutData>
 								<FlexItemData styleClass="hrxCrumbActionSlot"/>
 							</layoutData>
-						</Button>
+							<Text
+								id="pageStamp"
+								text="{app>/page/stamp}"
+								visible="{= !!${app>/page/stamp} }"
+								class="hrxCrumbStamp"/>
+							<Button
+								id="pageRefresh"
+								icon="sap-icon://refresh"
+								type="Transparent"
+								tooltip="{i18n>appRefreshTooltip}"
+								visible="{app>/page/showRefresh}"
+								press="onRefreshPage"
+								class="hrxCrumbAction"/>
+						</HBox>
 					</HBox>
 				</VBox>
 				<NavContainer id="appNavContainer" height="100%">
