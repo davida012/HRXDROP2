@@ -25,6 +25,9 @@ sap.ui.define([
 	// The prototype's chart palette, in the order slices take it.
 	var COLORS = ["#26AAE2", "#756EE5", "#C43FF6", "#2DD4BF", "#E5B159", "#E5484D"];
 
+	// Our own company, which always takes the first (brand blue) colour.
+	var OWN_COMPANY = /bluestonex/i;
+
 	// A Select shows nothing for an item keyed "", so "All" has a key of its own.
 	var ALL = "__all";
 
@@ -413,11 +416,26 @@ sap.ui.define([
 			}, 0);
 			var fTop = oOverview.top.length ? oOverview.top[0].value : 1;
 
+			// Bluestonex - our own company - is always the brand blue; other customers take
+			// the rest of the palette in order. A customer's projects start from the
+			// customer's own colour, so the slice clicked keeps its colour as it opens up.
+			var bOwnCompany = !sDrill && oOverview.slices.some(function (oSlice) {
+				return OWN_COMPANY.test(oSlice.label);
+			});
+			var iNext = bOwnCompany ? 1 : 0;
+
 			var aSlices = oOverview.slices.map(function (oSlice, iIndex) {
-				// A customer's projects start from the customer's own colour, so the slice
-				// clicked keeps its colour as the chart opens up.
-				var sColor = COLORS[((sDrill ? this._iDrillColour || 0 : 0) + iIndex) % COLORS.length];
+				var iColour;
+				if (sDrill) {
+					iColour = ((this._iDrillColour || 0) + iIndex) % COLORS.length;
+				} else if (OWN_COMPANY.test(oSlice.label)) {
+					iColour = 0;
+				} else {
+					iColour = iNext++ % COLORS.length;
+				}
+				var sColor = COLORS[iColour];
 				return Object.assign(oSlice, {
+					colourIndex: iColour,
 					color: sColor,
 					valueText: this._num(oSlice.value),
 					dotHtml: "<span class=\"hrxTrDot\" style=\"background:" + sColor + "\"></span>"
@@ -787,7 +805,7 @@ sap.ui.define([
 			if (oViewModel.getProperty("/drill") || !oSlice) {
 				return;
 			}
-			this._iDrillColour = iIndex;
+			this._iDrillColour = oSlice.colourIndex || 0;
 			oViewModel.setProperty("/drill", oSlice.key);
 			this._renderDays();
 		},
