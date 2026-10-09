@@ -456,8 +456,10 @@ sap.ui.define([
 		},
 
 		/**
-		 * A standard pie: one solid wedge per slice from twelve o'clock, clockwise,
-		 * with a thin white edge between wedges. Each wedge carries its index so a
+		 * The prototype's ring: one segment per slice from twelve o'clock, clockwise,
+		 * around the total days in the middle. Each segment is drawn as a solid ring
+		 * sector (not a dashed circle, which left a ragged edge where its dashes met at
+		 * the top), with a thin white edge between segments, and carries its index so a
 		 * click can drill into it.
 		 * @param {Array<object>} aSlices slices with label, value, valueText and color
 		 * @param {number} fTotal the sum of the slices
@@ -468,11 +470,12 @@ sap.ui.define([
 			if (!aSlices.length || !fTotal) {
 				return "<div></div>";
 			}
-			var R = 46;
 			var C = 50;
-			var fnPoint = function (fFraction) {
+			var R = 48;
+			var r = 34;
+			var fnPoint = function (fFraction, fRadius) {
 				var fAngle = fFraction * 2 * Math.PI - Math.PI / 2;
-				return (C + R * Math.cos(fAngle)).toFixed(3) + " " + (C + R * Math.sin(fAngle)).toFixed(3);
+				return (C + fRadius * Math.cos(fAngle)).toFixed(3) + " " + (C + fRadius * Math.sin(fAngle)).toFixed(3);
 			};
 			var fnEscape = function (sText) {
 				return String(sText).replace(/[&<>"]/g, function (sChar) {
@@ -482,25 +485,36 @@ sap.ui.define([
 			var fStart = 0;
 			var bDrill = !!this.getModel("trView").getProperty("/drill");
 
-			var sWedges = aSlices.map(function (oSlice, iIndex) {
+			var sSegments = aSlices.map(function (oSlice, iIndex) {
 				var fFraction = oSlice.value / fTotal;
 				var sTitle = "<title>" + fnEscape(oSlice.label + ": " + oSlice.valueText + " days") + "</title>";
 				var sAttrs = " data-i=\"" + iIndex + "\" fill=\"" + oSlice.color + "\" class=\"hrxTrWedge" +
 					(bDrill ? "" : " hrxTrWedgeActive") + "\"";
-				var sShape;
+				var sPath;
 
 				if (fFraction >= 0.9999) {
-					sShape = "<circle cx=\"" + C + "\" cy=\"" + C + "\" r=\"" + R + "\"" + sAttrs + ">" + sTitle + "</circle>";
+					// A whole ring: the outer circle with the inner one cut out of it.
+					sPath = "M" + (C - R) + " " + C + " A" + R + " " + R + " 0 1 1 " + (C + R) + " " + C +
+						" A" + R + " " + R + " 0 1 1 " + (C - R) + " " + C + " Z" +
+						" M" + (C - r) + " " + C + " A" + r + " " + r + " 0 1 0 " + (C + r) + " " + C +
+						" A" + r + " " + r + " 0 1 0 " + (C - r) + " " + C + " Z";
+					sAttrs += " fill-rule=\"evenodd\"";
 				} else {
-					sShape = "<path d=\"M" + C + " " + C + " L" + fnPoint(fStart) + " A" + R + " " + R + " 0 " +
-						(fFraction > 0.5 ? 1 : 0) + " 1 " + fnPoint(fStart + fFraction) + " Z\"" + sAttrs + ">" + sTitle + "</path>";
+					var sLarge = fFraction > 0.5 ? "1" : "0";
+					sPath = "M" + fnPoint(fStart, R) +
+						" A" + R + " " + R + " 0 " + sLarge + " 1 " + fnPoint(fStart + fFraction, R) +
+						" L" + fnPoint(fStart + fFraction, r) +
+						" A" + r + " " + r + " 0 " + sLarge + " 0 " + fnPoint(fStart, r) + " Z";
 				}
 				fStart += fFraction;
-				return sShape;
+				return "<path d=\"" + sPath + "\"" + sAttrs + ">" + sTitle + "</path>";
 			}).join("");
 
+			var sCentre = "<text x=\"50\" y=\"50\" text-anchor=\"middle\" class=\"hrxTrPieTotal\">" + fnEscape(this._num(fTotal)) + "</text>" +
+				"<text x=\"50\" y=\"60\" text-anchor=\"middle\" class=\"hrxTrPieUnit\">" + fnEscape(this.getText("trDaysUnit").toUpperCase()) + "</text>";
+
 			return "<div class=\"hrxTrPieWrap\"><svg viewBox=\"0 0 100 100\" class=\"hrxTrPie\" role=\"img\" aria-label=\"" +
-				fnEscape(sTitle) + "\">" + sWedges + "</svg></div>";
+				fnEscape(sTitle) + "\">" + sSegments + sCentre + "</svg></div>";
 		},
 
 		/**
