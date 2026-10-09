@@ -2515,9 +2515,17 @@ body.hrxApp {
 }
 
 .hrxApp .hrxTrFilters {
-	gap: 12px 16px;
 	padding: 14px 20px;
 	margin-bottom: 16px;
+}
+
+.hrxApp .hrxTrFieldRow {
+	gap: 12px 16px;
+}
+
+.hrxApp .hrxTrFilterFoot {
+	gap: 8px 16px;
+	margin-top: 12px;
 }
 
 .hrxApp .hrxTrField {
@@ -2538,8 +2546,7 @@ body.hrxApp {
 }
 
 .hrxApp .hrxTrStamp {
-	margin-left: auto;
-	align-self: center;
+	white-space: nowrap;
 }
 
 .hrxApp .hrxTrLegendRow > .sapMFlexItem:nth-child(2),

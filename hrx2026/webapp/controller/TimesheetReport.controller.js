@@ -3,7 +3,6 @@ sap.ui.define([
 	"sap/ui/model/json/JSONModel",
 	"sap/m/MessageBox",
 	"sap/m/MessageToast",
-	"sap/m/library",
 	"sap/m/Column",
 	"sap/m/ColumnListItem",
 	"sap/m/Text",
@@ -13,12 +12,11 @@ sap.ui.define([
 	"../model/SicknessPolicy",
 	"../model/TimesheetReport",
 	"../model/TimesheetReportService",
-	"../model/formatter"
-], function (Controller, JSONModel, MessageBox, MessageToast, mobileLibrary, Column, ColumnListItem, Text, HBox, Icon,
-	CurrentUser, SicknessPolicy, TimesheetReport, TimesheetReportService, formatter) {
+	"../model/formatter",
+	"../model/Mail"
+], function (Controller, JSONModel, MessageBox, MessageToast, Column, ColumnListItem, Text, HBox, Icon,
+	CurrentUser, SicknessPolicy, TimesheetReport, TimesheetReportService, formatter, Mail) {
 	"use strict";
-
-	var URLHelper = mobileLibrary.URLHelper;
 
 	var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 	var LONG_MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September",
@@ -826,9 +824,12 @@ sap.ui.define([
 				MessageBox.error(this.getText("trNoEmail", [oRow.Name]));
 				return;
 			}
-			URLHelper.triggerEmail(oRow.Email, this._remindSubject(),
-				this.getText("trRemindBody", [oRow.Name.split(/\s+/)[0], this._weekText(),
-					this._hours(oRow.bookedMinutes), this._hours(oRow.expectedMinutes)]));
+			Mail.open({
+				to: oRow.Email,
+				subject: this._remindSubject(),
+				body: this.getText("trRemindBody", [oRow.Name.split(/\s+/)[0], this._weekText(),
+					this._hours(oRow.bookedMinutes), this._hours(oRow.expectedMinutes)])
+			});
 		},
 
 		/**
@@ -842,10 +843,13 @@ sap.ui.define([
 				MessageToast.show(this.getText("trNoReminders"));
 				return;
 			}
-			URLHelper.triggerEmail("", this._remindSubject(), this.getText("trRemindAllBody", [this._weekText()]),
-				"", aUnder.map(function (oRow) {
+			Mail.open({
+				bcc: aUnder.map(function (oRow) {
 					return oRow.Email;
-				}).join(","));
+				}).join(","),
+				subject: this._remindSubject(),
+				body: this.getText("trRemindAllBody", [this._weekText()])
+			});
 		},
 
 		onUtilShow: function () {

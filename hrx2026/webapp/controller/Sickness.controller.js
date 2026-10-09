@@ -6,17 +6,15 @@ sap.ui.define([
 	"sap/ui/model/FilterOperator",
 	"sap/m/MessageBox",
 	"sap/m/MessageToast",
-	"sap/m/library",
 	"../model/Backend",
 	"../model/CurrentUser",
 	"../model/SicknessPolicy",
 	"../model/SicknessService",
-	"../model/formatter"
-], function (Controller, Fragment, JSONModel, Filter, FilterOperator, MessageBox, MessageToast, mobileLibrary,
-	Backend, CurrentUser, SicknessPolicy, SicknessService, formatter) {
+	"../model/formatter",
+	"../model/Mail"
+], function (Controller, Fragment, JSONModel, Filter, FilterOperator, MessageBox, MessageToast,
+	Backend, CurrentUser, SicknessPolicy, SicknessService, formatter, Mail) {
 	"use strict";
-
-	var URLHelper = mobileLibrary.URLHelper;
 
 	var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -429,7 +427,7 @@ sap.ui.define([
 			}
 
 			var sBody = this.getText("skFollowUpBody", [oTrigger.firstName, oTrigger.instances]);
-			URLHelper.triggerEmail(oTrigger.Email, this.getText("skFollowUpSubject"), sBody);
+			Mail.open({ to: oTrigger.Email, subject: this.getText("skFollowUpSubject"), body: sBody });
 
 			this._review(oTrigger, "EMAILED", sBody).then(function () {
 				MessageToast.show(this.getText("skFollowUpLogged"));
@@ -512,7 +510,7 @@ sap.ui.define([
 
 		onEmailRtw: function (oEvent) {
 			var oRtw = oEvent.getSource().getBindingContext("sk").getObject();
-			URLHelper.triggerEmail(oRtw.Email, this.getText("skRtwSubject"));
+			Mail.open({ to: oRtw.Email, subject: this.getText("skRtwSubject") });
 		},
 
 		onCompleteRtw: function (oEvent) {
