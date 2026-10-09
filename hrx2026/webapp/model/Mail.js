@@ -12,18 +12,55 @@ sap.ui.define([
 	"use strict";
 
 	/*
-	 * Opens a drafted email in the user's own email app.
+	 * Opens a drafted email in Outlook, the organisation's email.
 	 *
-	 * A mailto: link only works when the browser has an email app to hand it to, and a
-	 * page that sends itself to one (what URLHelper.triggerEmail does) is ignored
-	 * silently when it has not - which is common on work machines, and inside the
-	 * frames a launchpad or Business Application Studio can put the app in. So the
-	 * link is followed as a real link, and if the browser has not handed over to an
-	 * email app shortly afterwards, the draft is shown so it can be copied instead.
+	 * The draft opens as a new message in Outlook on the web, in a new tab: an ordinary
+	 * web address, so unlike a mailto: link it does not depend on the machine or the
+	 * browser having an email app set up. It is the user's own mailbox, so what they
+	 * send shows in desktop Outlook as well.
+	 *
+	 * If the browser blocks the new tab, the draft is shown instead, to copy, with a
+	 * button to try Outlook again and one for the machine's own email app.
 	 */
+	var OUTLOOK_COMPOSE = "https://outlook.office.com/mail/deeplink/compose";
 
-	// How long to wait for the browser to hand over before offering the draft.
-	var HANDOVER_WAIT = 1200;
+	function outlookUrl(oDraft) {
+		var aParts = [];
+		["to", "cc", "bcc", "subject", "body"].forEach(function (sKey) {
+			if (oDraft[sKey]) {
+				aParts.push(sKey + "=" + encodeURIComponent(oDraft[sKey]));
+			}
+		});
+		return OUTLOOK_COMPOSE + (aParts.length ? "?" + aParts.join("&") : "");
+	}
+
+	/**
+	 * @param {object} oDraft the draft
+	 * @returns {boolean} true when the new tab opened
+	 */
+	function openOutlook(oDraft) {
+		var oTab = window.open(outlookUrl(oDraft), "_blank");
+		if (!oTab) {
+			return false;
+		}
+		try {
+			oTab.opener = null;
+		} catch (oError) {
+			// cross-origin already - nothing to detach
+		}
+		return true;
+	}
+
+	function openMailApp(oDraft) {
+		var oLink = document.createElement("a");
+		oLink.href = mailtoUrl(oDraft);
+		oLink.target = "_top";
+		oLink.rel = "noopener";
+		oLink.style.display = "none";
+		document.body.appendChild(oLink);
+		oLink.click();
+		document.body.removeChild(oLink);
+	}
 
 	function mailtoUrl(oDraft) {
 		var aParts = [];
@@ -90,7 +127,7 @@ sap.ui.define([
 	function showDraft(oDraft) {
 		var aItems = [
 			new MessageStrip({
-				text: "Your email app did not open. Copy the details into a new email instead.",
+				text: "Outlook did not open in a new tab - the browser may have blocked it. Try again, or copy the details into a new email.",
 				type: "Information",
 				showIcon: true
 			}).addStyleClass("sapUiSmallMarginBottom")
@@ -112,12 +149,31 @@ sap.ui.define([
 			title: "Email draft",
 			contentWidth: "34rem",
 			content: new VBox({ items: aItems }),
-			endButton: new Button({
-				text: "Close",
-				press: function () {
-					oDialog.close();
-				}
-			}),
+			buttons: [
+				new Button({
+					text: "Open in Outlook",
+					type: "Emphasized",
+					icon: "sap-icon://email",
+					press: function () {
+						if (openOutlook(oDraft)) {
+							oDialog.close();
+						}
+					}
+				}),
+				new Button({
+					text: "Use my email app",
+					press: function () {
+						openMailApp(oDraft);
+						oDialog.close();
+					}
+				}),
+				new Button({
+					text: "Close",
+					press: function () {
+						oDialog.close();
+					}
+				})
+			],
 			afterClose: function () {
 				oDialog.destroy();
 			}
@@ -131,36 +187,12 @@ sap.ui.define([
 		 * @param {object} oDraft to (comma-separated), cc, bcc, subject and body
 		 */
 		open: function (oDraft) {
-			var bHandedOver = false;
-			var fnHandOver = function () {
-				bHandedOver = true;
-			};
-
-			// A browser that hands the link to an email app takes focus away from the page.
-			window.addEventListener("blur", fnHandOver, { once: true });
-			document.addEventListener("visibilitychange", fnHandOver, { once: true });
-
-			var oLink = document.createElement("a");
-			oLink.href = mailtoUrl(oDraft);
-			oLink.target = "_top";
-			oLink.rel = "noopener";
-			oLink.style.display = "none";
-			document.body.appendChild(oLink);
-			try {
-				oLink.click();
-			} catch (oError) {
-				// handled below as "nothing opened"
+			if (!openOutlook(oDraft)) {
+				showDraft(oDraft);
 			}
-			document.body.removeChild(oLink);
-
-			setTimeout(function () {
-				window.removeEventListener("blur", fnHandOver);
-				document.removeEventListener("visibilitychange", fnHandOver);
-				if (!bHandedOver) {
-					showDraft(oDraft);
-				}
-			}, HANDOVER_WAIT);
 		},
+
+		outlookUrl: outlookUrl,
 
 		mailtoUrl: mailtoUrl
 	};
