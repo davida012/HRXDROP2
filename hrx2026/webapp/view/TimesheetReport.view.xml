@@ -77,16 +77,24 @@
 						<Button text="{i18n>trLastYear}" press=".onLastYear" />
 						<Button text="{i18n>trClear}" type="Transparent" press=".onClear" />
 					</HBox>
-					<!-- Team utilisation's own filter, at the foot of the card while that tab is open. -->
-					<HBox alignItems="Center" visible="{= ${trView>/tab} === 'util' }" class="hrxTrShow">
-						<Label text="{i18n>trShow}" labelFor="trUtilShow" class="sapUiTinyMarginEnd" />
-						<Select id="trUtilShow" selectedKey="{trView>/util/show}" change=".onUtilShow" width="12rem">
+					<!-- Team utilisation's own filter, at the foot of the card while that tab is
+					     open, the same width as the Period box above it (see .hrxTrFilterFoot). -->
+					<Label
+						text="{i18n>trShow}"
+						labelFor="trUtilShow"
+						visible="{= ${trView>/tab} === 'util' }"
+						class="hrxTrShowLabel" />
+					<Select
+						id="trUtilShow"
+						selectedKey="{trView>/util/show}"
+						change=".onUtilShow"
+						visible="{= ${trView>/tab} === 'util' }"
+						width="100%">
 							<core:Item key="all" text="{i18n>trShowEveryone}" />
 							<core:Item key="bill" text="{i18n>trShowBillable}" />
 							<core:Item key="u50" text="{i18n>trShowUnder50}" />
 							<core:Item key="u80" text="{i18n>trShowUnder80}" />
-						</Select>
-					</HBox>
+					</Select>
 				</HBox>
 				</VBox>
 

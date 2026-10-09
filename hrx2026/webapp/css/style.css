@@ -2519,19 +2519,72 @@ body.hrxApp {
 	margin-bottom: 16px;
 }
 
-.hrxApp .hrxTrFieldRow {
-	gap: 12px 16px;
+/* Both rows of the filter card share one four-column grid, so the foot's Show
+   box sits exactly under the Period box: same width, same edges. */
+.hrxApp .hrxTrFieldRow.sapMFlexBox,
+.hrxApp .hrxTrFilterFoot.sapMFlexBox {
+	display: grid !important;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	column-gap: 16px;
+	row-gap: 12px;
 }
 
-.hrxApp .hrxTrFilterFoot {
-	gap: 8px 16px;
+.hrxApp .hrxTrFilterFoot.sapMFlexBox {
 	margin-top: 12px;
+	align-items: center;
+}
+
+.hrxApp .hrxTrFieldRow > .sapMFlexItem,
+.hrxApp .hrxTrFilterFoot > .sapMFlexItem {
+	min-width: 0 !important;
+}
+
+/* foot: the quick periods across the first two columns, "Show" right-aligned in
+   the third, its box in the fourth - under Period */
+.hrxApp .hrxTrFilterFoot > .sapMFlexItem:nth-child(1) {
+	grid-column: 1 / span 2;
+}
+
+.hrxApp .hrxTrFilterFoot > .sapMFlexItem:nth-child(2) {
+	grid-column: 3;
+	justify-self: end;
+}
+
+.hrxApp .hrxTrFilterFoot > .sapMFlexItem:nth-child(3) {
+	grid-column: 4;
+}
+
+@media (max-width: 900px) {
+	.hrxApp .hrxTrFieldRow.sapMFlexBox,
+	.hrxApp .hrxTrFilterFoot.sapMFlexBox {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.hrxApp .hrxTrFilterFoot > .sapMFlexItem:nth-child(2) {
+		grid-column: 1;
+	}
+
+	.hrxApp .hrxTrFilterFoot > .sapMFlexItem:nth-child(3) {
+		grid-column: 2;
+	}
+}
+
+@media (max-width: 600px) {
+	.hrxApp .hrxTrFieldRow.sapMFlexBox,
+	.hrxApp .hrxTrFilterFoot.sapMFlexBox {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.hrxApp .hrxTrFilterFoot > .sapMFlexItem:nth-child(1),
+	.hrxApp .hrxTrFilterFoot > .sapMFlexItem:nth-child(2),
+	.hrxApp .hrxTrFilterFoot > .sapMFlexItem:nth-child(3) {
+		grid-column: 1;
+		justify-self: stretch;
+	}
 }
 
 .hrxApp .hrxTrField {
-	flex: 1 1 11rem !important;
-	min-width: 11rem;
-	max-width: 17rem;
+	min-width: 0;
 }
 
 .hrxApp .hrxTrField .sapMLabel {
